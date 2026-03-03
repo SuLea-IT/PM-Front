@@ -2,7 +2,7 @@ import axiosInstance from './axiosInstance';
 import { ElMessage } from "element-plus";  // Import ElMessage
 
 const uploadFileInChunks = async (file, currentFileIndex, totalFiles, email, fileType, fileNumber, fun) => {
-    const chunkSize = 5 * 1024 * 1024; // Size of each chunk: 5MB
+    const chunkSize = 5 * 1024 * 1024; // 每个分片的大小：5MB
     const totalChunks = Math.ceil(file.size / chunkSize);
     let scz = 0;
 
@@ -26,15 +26,15 @@ const uploadFileInChunks = async (file, currentFileIndex, totalFiles, email, fil
         formData.append('currentFileIndex', currentFileIndex);
         formData.append('totalFiles', totalFiles);
         formData.append('email', email);
-        formData.append('fun', fun); // Add the new fun field
+        formData.append('fun', fun); // 添加新的 fun 字段
 
         try {
             const response = await axiosInstance.post('/upload/upload', formData);
 
-            // Check response status and message
+            // 检查响应状态和消息
             if (response.code === 200) {
                 if (response.msg === "上传中") {
-                    uploadChunk(index + 1); // Recursively upload the next chunk
+                    await uploadChunk(index + 1); // 递归上传下一个分片
                     scz++;
                     if (scz % 3 === 0) {
                         ElMessage.success(response.msg);
@@ -44,15 +44,15 @@ const uploadFileInChunks = async (file, currentFileIndex, totalFiles, email, fil
                     ElMessage.success("文件上传成功");
                 }
             } else {
-                ElMessage.error(response.msg); // Display error message
+                ElMessage.error(response.msg); // 显示错误消息
             }
         } catch (error) {
-            console.error('Error uploading chunk:', error);
+            console.error('上传分片时出错:', error);
             ElMessage.error('上传出错，请重试！');
         }
     };
 
-    await uploadChunk(0); // Start uploading the first chunk
+    await uploadChunk(0); // 开始上传第一个分片
 };
 
 const uploadFiles = (files, email, fileType, fileNumber, fun) => {
@@ -63,17 +63,20 @@ const uploadFiles = (files, email, fileType, fileNumber, fun) => {
 
     const totalFiles = files.length;
 
+    // 按文件大小从大到小排序
+    const sortedFiles = Array.from(files).sort((a, b) => b.size - a.size);
+
     const uploadNextFile = (index) => {
         if (index >= totalFiles) return;
 
-        uploadFileInChunks(files[index], index + 1, totalFiles, email, fileType, fileNumber, fun).then(() => {
+        uploadFileInChunks(sortedFiles[index], index + 1, totalFiles, email, fileType, fileNumber, fun).then(() => {
             setTimeout(() => {
-                uploadNextFile(index + 1); // Wait 300ms before uploading the next file
+                uploadNextFile(index + 1); // 在上传下一个文件前等待300ms
             }, 300);
         });
     };
 
-    uploadNextFile(0); // Start uploading the first file
+    uploadNextFile(0); // 开始上传第一个文件
 };
 
 export { uploadFiles };

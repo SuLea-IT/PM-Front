@@ -12,7 +12,13 @@
           <router-link to="/analyse">{{ $t("analyse") }}</router-link>
         </li>
         <li>
-          <router-link to="/forum">{{ $t("forum") }}</router-link>
+          <a
+            href="https://bbs.single-cell-spatial.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {{ $t("forum") }}
+          </a>
         </li>
       </ul>
     </div>
@@ -119,6 +125,8 @@ const changeLanguage = (newLocale) => {
   position: relative;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   z-index: 1000;
+  top: 0;
+  position: sticky;
 }
 
 .navbar-left {

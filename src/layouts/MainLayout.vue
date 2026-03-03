@@ -134,7 +134,7 @@ onMounted(() => {
   height: 100%;
 }
 .el-main {
-  padding: 20px;
+  padding: 0 !important;
   background-color: var(--el-container-bg-color);
   color: var(--el-navbar-color) !important;
 }

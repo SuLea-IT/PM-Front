@@ -15,7 +15,7 @@ import Navbar from "../components/Navbar.vue";
 
 <style scoped>
 .el-main {
-  padding: 20px;
+  padding: 0;
   background-color: #f5f5f5;
 }
 </style>

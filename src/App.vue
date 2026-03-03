@@ -9,4 +9,7 @@
 
 <style scoped>
 /* 全局样式 */
+.dark {
+  font-family: Arial !important;
+}
 </style>

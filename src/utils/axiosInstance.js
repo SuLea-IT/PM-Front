@@ -2,7 +2,8 @@ import axios from 'axios';
 
 // 创建一个 axios 实例
 const axiosInstance = axios.create({
-    baseURL: 'http://127.0.0.1:3000/api', // 这里填写您的 API 基础路径
+    baseURL: 'http://54.245.89.178:3001/api', // 这里填写您的 API 基础路径
+    // baseURL: 'http://127.0.0.1:3001/api', // 这里填写您的 API 基础路径
     timeout: 100000, // 请求超时时间
     headers: {
         'Content-Type': 'multipart/form-data', // 确保正确设置内容类型
