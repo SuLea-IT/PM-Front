@@ -14,6 +14,7 @@
 
 <script setup>
 import { ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 
 const props = defineProps({
   tagText: {
@@ -36,24 +37,28 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:modelValue"]);
-
+const { t } = useI18n();
 const errorMessage = ref("");
 
-const handleInput = (value) => {
-  if (props.validateFn) {
-    const isValid = props.validateFn(value);
-    errorMessage.value = isValid ? "" : "无效邮箱";
+const updateErrorMessage = (value) => {
+  if (!props.validateFn) {
+    errorMessage.value = "";
+    return;
   }
+
+  const isValid = props.validateFn(value);
+  errorMessage.value = isValid || !value ? "" : t("invalidEmail");
+};
+
+const handleInput = (value) => {
+  updateErrorMessage(value);
   emit("update:modelValue", value);
 };
 
 watch(
   () => props.modelValue,
   (newVal) => {
-    if (props.validateFn) {
-      const isValid = props.validateFn(newVal);
-      errorMessage.value = isValid ? "" : "无效邮箱";
-    }
+    updateErrorMessage(newVal);
   }
 );
 </script>

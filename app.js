@@ -17,7 +17,7 @@ const port = process.env.PORT || 3000;
 const corsOptions = {
     origin: function (origin, callback) {
         console.log('收到来自以下来源的请求:', origin);
-        const allowedOrigins = ['http://54.245.89.178:5173', 'http://localhost:5173'];
+        const allowedOrigins = ['http://54.245.89.178:3001', 'http://localhost:3001'];
         if (!origin || allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
         } else {

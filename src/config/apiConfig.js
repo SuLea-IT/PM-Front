@@ -1,6 +1,6 @@
 // src/config/apiConfig.js
 
-const baseURL = 'http://54.245.89.178:3002/api';
+const baseURL = 'http://54.245.89.178:3001/api';
 
 export const apiConfig = {
   baseURL: baseURL,
@@ -14,8 +14,11 @@ export const apiConfig = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ genes })
     }),
-    getSampleGenes: (dataType, searchTerm = '') => {
+    getSampleGenes: (dataType, searchTerm = '', dataSource = 'spatial') => {
       const url = new URL(`${baseURL}/data/${dataType}/genes`);
+      if (dataSource) {
+        url.searchParams.append('data', dataSource);
+      }
       if (searchTerm) {
         url.searchParams.append('search', searchTerm);
       }

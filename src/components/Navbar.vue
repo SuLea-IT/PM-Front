@@ -52,7 +52,7 @@
           <div
             v-for="lang in languages"
             :key="lang.value"
-            :class="{ 'active-language': localeLabel == lang.label }"
+            :class="{ 'active-language': localeLabel === lang.label }"
             @click="changeLanguage(lang.value)"
           >
             {{ lang.label }}
@@ -68,11 +68,11 @@
 
 <script setup>
 import { useI18n } from "vue-i18n";
-import { ref, watchEffect } from "vue";
-import { useDark, useToggle } from "@vueuse/core";
+import { computed, ref, watchEffect } from "vue";
+import { useToggle } from "@vueuse/core";
+import { isDark } from "../theme/composables/dark";
 import Toggle from "../components/ToggleDark.vue";
 
-const isDark = useDark();
 const toggleDark = useToggle(isDark);
 const isDarkMode = ref(isDark.value);
 
@@ -80,34 +80,29 @@ const toggleDarkMode = () => {
   toggleDark();
   isDarkMode.value = !isDarkMode.value;
 };
-// 获取当前语言和切换语言的方法
-const { locale } = useI18n();
 
-// 定义语言选项
-const languages = [
-  { label: "English", value: "en" },
-  { label: "中文", value: "zh" },
-];
+const { locale, t } = useI18n();
 
-// 获取当前语言的显示文本
+const languages = computed(() => [
+  { label: t("english"), value: "en" },
+  { label: t("chinese"), value: "zh" },
+]);
+
 const localeLabel = ref(
-  languages.find((lang) => lang.value === locale.value)?.label
+  languages.value.find((lang) => lang.value === locale.value)?.label
 );
 
-// 控制弹出框的显示状态
 const popoverVisible = ref(false);
 
-// 监听 locale 的变化，以便在渲染时正确显示当前语言
 watchEffect(() => {
-  localeLabel.value = languages.find(
+  localeLabel.value = languages.value.find(
     (lang) => lang.value === locale.value
   )?.label;
 });
 
-// 切换语言的方法
 const changeLanguage = (newLocale) => {
   locale.value = newLocale;
-  popoverVisible.value = false; // 选择完语言后关闭弹出框
+  popoverVisible.value = false;
 };
 </script>
 
@@ -221,7 +216,7 @@ const changeLanguage = (newLocale) => {
 .active-language {
   font-weight: bold;
   color: #545454;
-  background-color: #b6e8ff; /* 突出显示当前语言 */
+  background-color: #b6e8ff;
   border-radius: 4px;
 }
 </style>

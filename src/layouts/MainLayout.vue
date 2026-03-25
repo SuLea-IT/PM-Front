@@ -1,7 +1,7 @@
 <template>
   <div>
     <Navbar />
-    <el-container class="main-layout">
+    <el-container class="main-layout" :style="{ height: mainLayoutHeight }">
       <el-aside width="200px">
         <!-- 功能栏内容 -->
         <el-menu
@@ -82,13 +82,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import Navbar from "../components/Navbar.vue";
 
 const activeMenu = ref("");
 const router = useRouter();
 const route = useRoute();
+const mainLayoutHeight = computed(() => "calc(100vh - 76px)");
 
 const handleSelect = (key) => {
   activeMenu.value = key;

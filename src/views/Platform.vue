@@ -63,7 +63,7 @@
         @update:gene-stats="geneStats = $event"
       />
       <Legend
-        v-if="clusterMeta.length > 0"
+        v-if="false"
         :items="clusterMeta"
         :visibleClusters="visibleClusters"
         @update:visible-clusters="visibleClusters = $event"
@@ -104,7 +104,7 @@ export default {
       stepRevealCount: 0,
       stepRevealTimer: null,
       stepRevealInterval: 400,
-      dataSource: "data",
+      dataSource: "cluster",
       dataType: "",
       mode: "cluster",
       pointSize: 1,
@@ -124,6 +124,7 @@ export default {
       allPointsData: [],
       chartType: 'pie',
       geneStats: null,
+      sourceTypeManifest: null,
     };
   },
   mounted() {
@@ -133,15 +134,45 @@ export default {
     this.stopStepRevealAutoPlay();
   },
   methods: {
-    async fetchDataTypes() {
+    async loadSourceTypeManifest() {
+      if (this.sourceTypeManifest) return this.sourceTypeManifest;
       try {
-        const response = await axios.get(`${apiConfig.baseURL}/data/types`);
+        const response = await fetch('/source_types.json');
+        if (!response.ok) return null;
+        this.sourceTypeManifest = await response.json();
+      } catch (error) {
+        this.sourceTypeManifest = null;
+      }
+      return this.sourceTypeManifest;
+    },
+    async fetchDataTypes() {
+      const manifest = await this.loadSourceTypeManifest();
+      if (manifest && Array.isArray(manifest[this.dataSource]) && manifest[this.dataSource].length > 0) {
+        const localTypes = manifest[this.dataSource];
+        this.dataTypes = localTypes;
+        this.dataType = this.dataTypes[0] || '';
+        return;
+      }
+      if (this.dataSource === 'umap') {
+        this.dataTypes = ['default'];
+        this.dataType = 'default';
+        return;
+      }
+      try {
+        const response = await axios.get(`${apiConfig.baseURL}/data/types`, {
+          params: { data: this.dataSource }
+        });
         if (response.data.success && response.data.data.length > 0) {
           this.dataTypes = response.data.data;
           this.dataType = this.dataTypes[0];
+        } else {
+          this.dataTypes = [];
+          this.dataType = '';
         }
       } catch (error) {
-        console.error("获取数据类型失败:", error);
+        console.error('Failed to fetch data types:', error);
+        this.dataTypes = [];
+        this.dataType = '';
       }
     },
     closeChart() {
@@ -231,6 +262,9 @@ export default {
     },
   },
   watch: {
+    dataSource() {
+      this.fetchDataTypes();
+    },
     stepRevealEnabled(newVal) {
       if (newVal) this.startStepRevealAutoPlay(); else this.stopStepRevealAutoPlay();
     },

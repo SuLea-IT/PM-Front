@@ -1,6 +1,6 @@
 <template>
   <div class="canvas-div" ref="canvasDiv">
-    <div class="toolbar">
+    <div v-if="!showDefaultImage" class="toolbar">
       <button @click="switchTool('move')" class="tool-button" :class="{ active: !isSelecting }" title="Move">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M12 2L8 6h3v3H6v4h3v3H8l4 4 4-4h-3v-3h4V9h-3V6h3L12 2z"/></svg>
       </button>
@@ -12,7 +12,10 @@
       </button>
     </div>
     <div ref="deckContainer" class="deck-container"></div>
-    <div ref="selectionBox" class="selection" id="selection-box" style="display: none"></div>
+    <div v-if="showDefaultImage" class="default-image-mask">
+      <img src="/default.png" alt="default" class="default-image" />
+    </div>
+    <div v-if="!showDefaultImage" ref="selectionBox" class="selection" id="selection-box" style="display: none"></div>
     <div v-if="mode !== 'cluster' && allPoints.length > 0" class="legend-bar">
       <div class="legend-gradient" :style="legendGradientStyle"></div>
       <div class="legend-labels">
@@ -126,6 +129,9 @@ export default {
     };
   },
   computed: {
+    showDefaultImage() {
+      return this.dataSource === 'cluster';
+    },
     legendGradientStyle() {
       return {
         background: `linear-gradient(to right, ${this.minColor}, ${this.midColor}, ${this.maxColor})`
@@ -147,18 +153,201 @@ export default {
       h ^= h >>> 16;
       return (h >>> 0);
     },
+    getStaticClusterUrl() {
+      const source = (this.dataSource || "").trim();
+      const type = (this.dataType || "").trim();
+      const safeType = encodeURIComponent(type);
+
+      if (source === "umap") return "/umap/clusters.json";
+      if (source === "xenium") return type ? `/xenium/${safeType}/clusters.json` : "/xenium/clusters.json";
+      if (source === "spatial") return type ? `/spatial/${safeType}/clusters.json` : null;
+      if (source === "singleCell") return type ? `/singleCell/${safeType}/clusters.json` : null;
+      if (source === "cluster") return "/clusters.json";
+
+      return null;
+    },
+    parseClusterJsonPoints(clusterJson) {
+      const points = [];
+      const colorByCluster = new Map();
+      const clusterSums = {};
+
+      Object.entries(clusterJson || {}).forEach(([rawId, payload]) => {
+        const parsed = Number(rawId);
+        const clusterId = Number.isNaN(parsed) ? rawId : parsed;
+        const color = payload?.color || "#999999";
+        colorByCluster.set(clusterId, color);
+
+        const cells = Array.isArray(payload?.cells) ? payload.cells : [];
+        cells.forEach((cell, idx) => {
+          const x = Number(cell?.UMAP1);
+          const y = Number(cell?.UMAP2);
+          if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+
+          const cellName = cell?.cell || `${clusterId}_${idx}`;
+          points.push({
+            x,
+            y,
+            value: clusterId,
+            clusterId,
+            color,
+            cellName: `${clusterId}_${cellName}`
+          });
+
+          if (!clusterSums[clusterId]) {
+            clusterSums[clusterId] = { x: 0, y: 0, count: 0 };
+          }
+          clusterSums[clusterId].x += x;
+          clusterSums[clusterId].y += y;
+          clusterSums[clusterId].count++;
+        });
+      });
+
+      return { points, colorByCluster, clusterSums };
+    },
+    applyGeneJson(geneJson) {
+      const firstKey = Object.keys(geneJson || {})[0];
+      const payload = firstKey ? geneJson[firstKey] : null;
+      const cells = Array.isArray(payload?.cells) ? payload.cells : [];
+
+      let minV = Infinity;
+      let maxV = -Infinity;
+      this.allPoints = cells
+        .map((cell, i) => {
+          const x = Number(cell?.UMAP1);
+          const y = Number(cell?.UMAP2);
+          const value = Number(cell?.expression);
+          if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(value)) {
+            return null;
+          }
+          if (value < minV) minV = value;
+          if (value > maxV) maxV = value;
+          return {
+            x,
+            y,
+            value,
+            cellName: String(cell?.cell || `cell_${i}`),
+            color: 'gray'
+          };
+        })
+        .filter(Boolean);
+
+      if (!Number.isFinite(minV)) minV = 0;
+      if (!Number.isFinite(maxV)) maxV = 0;
+      this.geneValueMin = minV;
+      this.geneValueMax = maxV;
+
+      this.pointsByCluster = new Map();
+      this.clusterOrder = [];
+      this.$emit('update:cluster-meta', []);
+      this.quadtree = d3_quadtree().x(d => d.x).y(d => d.y).addAll(this.allPoints);
+      this.$emit('update:all-points', this.allPoints);
+
+      const expressingCells = this.allPoints.filter(p => p.value > 0).length;
+      const totalCells = this.allPoints.length;
+      const percentage = totalCells > 0 ? (expressingCells / totalCells) * 100 : 0;
+      this.$emit('update:gene-stats', { expressingCells, totalCells, percentage });
+    },
+    applyJsonByMode(jsonPayload) {
+      if (this.mode === 'cluster') {
+        this.applyClusterJson(jsonPayload);
+      } else {
+        this.applyGeneJson(jsonPayload);
+      }
+    },
+    applyClusterJson(clusterJson) {
+      const { points, colorByCluster } = this.parseClusterJsonPoints(clusterJson);
+      this.allPoints = points;
+
+      const uniqueClusters = [...new Set(points.map(p => p.clusterId))].sort((a, b) => {
+        const na = Number(a);
+        const nb = Number(b);
+        if (!Number.isNaN(na) && !Number.isNaN(nb)) return na - nb;
+        return String(a).localeCompare(String(b));
+      });
+
+      this.clusterOrder = uniqueClusters;
+      this.pointsByCluster = new Map();
+      this.allPoints.forEach((p) => {
+        if (!this.pointsByCluster.has(p.clusterId)) this.pointsByCluster.set(p.clusterId, []);
+        this.pointsByCluster.get(p.clusterId).push(p);
+      });
+
+      const clusterMeta = uniqueClusters.map((id) => ({
+        id,
+        name: `Cluster ${id}`,
+        color: colorByCluster.get(id) || "#999999"
+      }));
+      this.$emit('update:cluster-meta', clusterMeta);
+
+      this.quadtree = d3_quadtree().x(d => d.x).y(d => d.y).addAll(this.allPoints);
+      this.$emit('update:all-points', this.allPoints);
+      this.$emit('update:gene-stats', null);
+    },
     async loadAndDrawUMAPData() {
-      if (!this.dataSource || !this.dataType || !this.mode) return;
+      if (!this.dataSource || !this.mode) return;
+      if (this.dataSource !== 'umap' && this.dataSource !== 'cluster' && !this.dataType) return;
+
+      if (this.showDefaultImage) {
+        this.allPoints = [];
+        this.clusterPoints = [];
+        this.clusterLabels = [];
+        this.pointsByCluster = new Map();
+        this.$emit('update:cluster-meta', []);
+        this.$emit('update:all-points', []);
+        this.$emit('update:gene-stats', null);
+        if (this.deck) {
+          this.deck.setProps({ layers: [] });
+        }
+        return;
+      }
 
       const loading = ElLoading.service({ lock: true, text: "Loading..." });
 
       if (this.mode === 'gene' && this.showClusterBg) {
         try {
-          const clusterUrl = apiConfig.endpoints.getClusterData(this.dataType);
-          const response = await fetch(clusterUrl);
-          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-          const arrayBuffer = await response.arrayBuffer();
-          this.clusterPoints = this.parseClusterDataForBackground(arrayBuffer);
+          const staticClusterUrl = this.getStaticClusterUrl();
+          if (staticClusterUrl) {
+            const response = await fetch(staticClusterUrl);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const clusterJson = await response.json();
+            const { points, clusterSums } = this.parseClusterJsonPoints(clusterJson);
+            this.clusterPoints = points;
+            this.clusterLabels = Object.entries(clusterSums).map(([id, data]) => ({
+              id: `C${id}`,
+              x: data.x / data.count,
+              y: data.y / data.count,
+            }));
+          } else {
+            const clusterUrl = apiConfig.endpoints.getClusterData(this.dataType);
+            const response = await fetch(clusterUrl);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const contentType = response.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+              const clusterJson = await response.json();
+              const { points, clusterSums } = this.parseClusterJsonPoints(clusterJson);
+              this.clusterPoints = points;
+              this.clusterLabels = Object.entries(clusterSums).map(([id, data]) => ({
+                id: `C${id}`,
+                x: data.x / data.count,
+                y: data.y / data.count,
+              }));
+            } else {
+              const arrayBuffer = await response.arrayBuffer();
+              if (arrayBuffer.byteLength % 12 !== 0) {
+                const text = new TextDecoder().decode(arrayBuffer);
+                const clusterJson = JSON.parse(text);
+                const { points, clusterSums } = this.parseClusterJsonPoints(clusterJson);
+                this.clusterPoints = points;
+                this.clusterLabels = Object.entries(clusterSums).map(([id, data]) => ({
+                  id: `C${id}`,
+                  x: data.x / data.count,
+                  y: data.y / data.count,
+                }));
+              } else {
+                this.clusterPoints = this.parseClusterDataForBackground(arrayBuffer);
+              }
+            }
+          }
         } catch (error) {
           console.error("Failed to load cluster background data:", error);
           this.$message.error(`Failed to load cluster background. ${error.message}`);
@@ -173,6 +362,19 @@ export default {
 
       // Determine the correct API endpoint based on the mode
       if (this.mode === 'cluster') {
+          const staticClusterUrl = this.getStaticClusterUrl();
+          if (staticClusterUrl) {
+              const response = await fetch(staticClusterUrl);
+              if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+              const clusterJson = await response.json();
+              this.applyClusterJson(clusterJson);
+              this.$nextTick(() => {
+                this.autoAdjustView();
+                this.initCanvasEvents();
+              });
+              loading.close();
+              return;
+          }
           url = apiConfig.endpoints.getClusterData(this.dataType);
       } else if (this.mode === 'gene' && this.geneName) {
           url = apiConfig.endpoints.getGeneData(this.dataSource, this.geneName, this.dataType);
@@ -188,9 +390,21 @@ export default {
       try {
         const response = await fetch(url, options);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const arrayBuffer = await response.arrayBuffer();
-        
-        this.parseAndProcessSimpleBinary(arrayBuffer);
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const jsonPayload = await response.json();
+          this.applyJsonByMode(jsonPayload);
+        } else {
+          const arrayBuffer = await response.arrayBuffer();
+          if (arrayBuffer.byteLength % 12 === 0) {
+            this.parseAndProcessSimpleBinary(arrayBuffer);
+          } else {
+            // Some backends return JSON but with non-json content-type.
+            const text = new TextDecoder().decode(arrayBuffer);
+            const jsonPayload = JSON.parse(text);
+            this.applyJsonByMode(jsonPayload);
+          }
+        }
         
         this.$nextTick(() => {
           this.autoAdjustView();
@@ -769,6 +983,7 @@ export default {
   position: relative;
   width: 100%;
   height: 100%;
+  background-color: var(--el-canvas-bg-color, #ffffff);
 }
 .toolbar {
   position: absolute;
@@ -806,8 +1021,28 @@ export default {
   pointer-events: none;
 }
 .deck-container {
+  width: 100%;
+  height: 100%;
+  background-color: var(--el-canvas-bg-color, #ffffff);
+}
+.default-image-mask {
   position: absolute;
   inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--el-canvas-bg-color, #ffffff);
+  z-index: 5;
+}
+.default-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+:deep(#deckgl-overlay) {
+  position: static !important;
+  left: auto !important;
+  top: auto !important;
 }
 .legend-bar {
   position: absolute;

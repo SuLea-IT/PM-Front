@@ -7,10 +7,15 @@
       <div class="control-item">
         <label>{{ $t("selectDataSource") }}</label>
         <el-select v-model="selectedDataSource" :placeholder="$t('selectDataSource')" @change="onDataSourceChange">
-          <el-option :label="$t('data')" value="data"></el-option>
+          <el-option
+            v-for="item in dataSourceOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
         </el-select>
       </div>
-      <div class="control-item" v-if="selectedDataSource === 'data'">
+      <div class="control-item">
         <label>{{ $t("selectDataType") }}</label>
         <el-select v-model="selectedDataType" :placeholder="$t('selectDataType')" @change="onDataTypeChange">
           <el-option v-for="type in dataTypes" :key="type" :label="type" :value="type"></el-option>
@@ -20,7 +25,7 @@
         <label>{{ $t("selectMode") }}</label>
         <el-select v-model="selectedMode" :placeholder="$t('selectMode')" @change="onModeChange">
           <el-option :label="$t('cluster')" value="cluster"></el-option>
-          <el-option :label="$t('gene')" value="gene"></el-option>
+          <el-option v-if="selectedDataSource !== 'singleCell'" :label="$t('gene')" value="gene"></el-option>
         </el-select>
       </div>
     </div>
@@ -31,18 +36,18 @@
         <label>{{ $t("pointSize") }}</label>
         <el-slider v-model="pointSize" :min="0.1" :max="2" :step="0.1" @input="onPointSizeChange"></el-slider>
       </div>
-      <div v-if="selectedMode === 'cluster'" class="control-item">
+      <div v-if="false && selectedMode === 'cluster'" class="control-item">
         <label>{{ $t("selectClusters") }}</label>
         <el-select v-model="selectedClusters" multiple :placeholder="$t('selectClusters')" @change="onClusterChange">
           <el-option v-for="item in clusterOptions" :key="item.value" :label="item.label" :value="item.value"></el-option>
         </el-select>
       </div>
       <div v-if="selectedMode === 'cluster'" class="control-item">
-        <label>低渲染（更流畅）</label>
+        <label>{{ $t("lowRender") }}</label>
         <el-switch v-model="lowRenderEnabled" @change="onLowRenderChange"></el-switch>
       </div>
       <div v-if="selectedMode === 'cluster'" class="control-item">
-        <label>逐步显色</label>
+        <label>{{ $t("stepReveal") }}</label>
         <el-switch v-model="stepRevealEnabled" @change="onStepRevealEnabledChange"></el-switch>
       </div>
       <div v-if="selectedMode === 'cluster'" class="control-item">
@@ -62,6 +67,7 @@
       <div v-if="geneMode === 'single'" class="gene-input-section">
         <label>{{ $t("inputGeneName") }}</label>
         <el-select
+          ref="geneNameSelect"
           v-model="inputGeneName"
           filterable
           remote
@@ -77,6 +83,18 @@
             :value="item">
           </el-option>
         </el-select>
+        <div v-if="geneTags.length > 0" class="gene-tags-wrap">
+          <span class="gene-tags-title">Dataset genes:</span>
+          <el-tag
+            v-for="gene in geneTags"
+            :key="gene"
+            class="gene-tag-item"
+            size="small"
+            @click="onGeneTagClick(gene)"
+          >
+            {{ gene }}
+          </el-tag>
+        </div>
         <el-button type="primary" @click="onGeneInputChange" class="full-width-button">{{ $t("submit") }}</el-button>
       </div>
       
@@ -138,7 +156,7 @@ export default {
   },
   data() {
     return {
-      selectedDataSource: "data",
+      selectedDataSource: "cluster",
       selectedDataType: "",
       selectedMode: "cluster",
       pointSize: 1,
@@ -157,35 +175,92 @@ export default {
       maxColor: '#ff0000',
       sampleGenes: [],
       geneSearchLoading: false,
+      geneTags: [],
+      dataSourceOptions: [
+        { label: "Cluster", value: "cluster" },
+        { label: "umap", value: "umap" },
+        { label: "Xenium", value: "xenium" },
+        { label: "spatial", value: "spatial" },
+        { label: "singleCell", value: "singleCell" }
+      ]
     };
   },
   methods: {
+    applyDefaultGeneFromTags(tags) {
+      if (
+        this.selectedDataSource === 'xenium' &&
+        this.selectedMode === 'gene' &&
+        this.geneMode === 'single' &&
+        Array.isArray(tags) &&
+        tags.length > 0 &&
+        !this.inputGeneName
+      ) {
+        this.inputGeneName = tags[0];
+        this.$emit("gene-input", this.inputGeneName);
+      }
+    },
+    async loadGeneTags(searchTerm = '', limit = 3) {
+      if (!this.selectedDataType) {
+        this.geneTags = [];
+        return;
+      }
+      try {
+        const url = apiConfig.endpoints.getSampleGenes(
+          this.selectedDataType,
+          searchTerm,
+          this.selectedDataSource
+        );
+        const response = await axios.get(url);
+        if (response.data.success && Array.isArray(response.data.data)) {
+          this.geneTags = response.data.data.slice(0, limit);
+          this.applyDefaultGeneFromTags(this.geneTags);
+        } else {
+          this.geneTags = [];
+        }
+      } catch (error) {
+        this.geneTags = [];
+      }
+    },
     async searchGenes(query) {
       if (query !== '') {
         this.geneSearchLoading = true;
         try {
-          const url = apiConfig.endpoints.getSampleGenes(this.selectedDataType, query);
+          const url = apiConfig.endpoints.getSampleGenes(
+            this.selectedDataType,
+            query,
+            this.selectedDataSource
+          );
           const response = await axios.get(url);
           if (response.data.success) {
             this.sampleGenes = response.data.data;
+            this.geneTags = this.sampleGenes.slice(0, 3);
+            this.applyDefaultGeneFromTags(this.geneTags);
           }
         } catch (error) {
           console.error("Failed to search genes:", error);
           this.sampleGenes = [];
+          this.geneTags = [];
         } finally {
           this.geneSearchLoading = false;
         }
       } else {
         this.sampleGenes = [];
+        this.loadGeneTags();
       }
     },
     onDataSourceChange(value) {
+      this.geneTags = [];
+      if (value === 'singleCell' && this.selectedMode === 'gene') {
+        this.selectedMode = 'cluster';
+        this.onModeChange('cluster');
+      }
       this.$emit("update:dataSource", value);
     },
     onDataTypeChange(value) {
         this.$emit("update:dataType", value);
         this.sampleGenes = []; // Clear gene list on data type change
         this.inputGeneName = ''; // Clear selected gene
+        this.loadGeneTags();
     },
     onModeChange(value) {
       this.$emit("update:mode", value);
@@ -204,6 +279,9 @@ export default {
         const genes = this.geneSet.split('\n').filter(g => g.trim() !== '');
         this.$emit("gene-set-input", genes);
       }
+    },
+    onGeneTagClick(gene) {
+      this.inputGeneName = gene;
     },
     onDownloadRequest() {
       this.$emit("download-request");
@@ -251,7 +329,12 @@ export default {
   },
   watch: {
       dataTypes(newVal) {
-          if (newVal.length > 0 && !this.selectedDataType) {
+          if (!newVal || newVal.length === 0) {
+              this.selectedDataType = '';
+              this.onDataTypeChange(this.selectedDataType);
+              return;
+          }
+          if (!newVal.includes(this.selectedDataType)) {
               this.selectedDataType = newVal[0];
               this.onDataTypeChange(this.selectedDataType);
           }
@@ -260,6 +343,16 @@ export default {
         if (newVal) {
           this.selectedClusters = newVal.map(item => item.value);
           this.onClusterChange(this.selectedClusters);
+        }
+      },
+      selectedMode(newVal) {
+        if (newVal === 'gene' && this.geneMode === 'single') {
+          this.loadGeneTags();
+        }
+      },
+      geneMode(newVal) {
+        if (newVal === 'single' && this.selectedMode === 'gene') {
+          this.loadGeneTags();
         }
       }
   }
@@ -339,6 +432,19 @@ export default {
 
 .full-width-select {
   width: 100%;
+}
+.gene-tags-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.gene-tags-title {
+  font-size: 12px;
+  color: var(--el-control-panel-section-color, #606266);
+}
+.gene-tag-item {
+  cursor: pointer;
 }
 
 .panel-footer {
