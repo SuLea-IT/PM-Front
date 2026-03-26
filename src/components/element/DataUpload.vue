@@ -120,7 +120,17 @@ defineExpose({
 
 <style scoped>
 .upload-demo {
-  width: 60%;
-  margin: 40px 0;
+  width: 100%;
+  max-width: 420px;
+  margin: 0;
+}
+
+.upload-demo :deep(.el-upload-dragger) {
+  padding: 28px 20px;
+}
+
+.upload-demo :deep(.el-upload__tip) {
+  margin-top: 10px;
+  line-height: 1.5;
 }
 </style>

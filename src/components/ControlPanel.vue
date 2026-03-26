@@ -15,13 +15,13 @@
           />
         </el-select>
       </div>
-      <div class="control-item">
+      <div v-if="selectedDataSource !== 'cluster'" class="control-item">
         <label>{{ $t("selectDataType") }}</label>
         <el-select v-model="selectedDataType" :placeholder="$t('selectDataType')" @change="onDataTypeChange">
           <el-option v-for="type in dataTypes" :key="type" :label="type" :value="type"></el-option>
         </el-select>
       </div>
-      <div class="control-item">
+      <div v-if="selectedDataSource !== 'cluster'" class="control-item">
         <label>{{ $t("selectMode") }}</label>
         <el-select v-model="selectedMode" :placeholder="$t('selectMode')" @change="onModeChange">
           <el-option :label="$t('cluster')" value="cluster"></el-option>
@@ -36,11 +36,21 @@
         <label>{{ $t("pointSize") }}</label>
         <el-slider v-model="pointSize" :min="0.1" :max="2" :step="0.1" @input="onPointSizeChange"></el-slider>
       </div>
-      <div v-if="false && selectedMode === 'cluster'" class="control-item">
+      <div v-if="selectedMode === 'cluster'" class="control-item">
         <label>{{ $t("selectClusters") }}</label>
-        <el-select v-model="selectedClusters" multiple :placeholder="$t('selectClusters')" @change="onClusterChange">
+        <el-select
+          v-model="selectedClusters"
+          multiple
+          collapse-tags
+          :max-collapse-tags="5"
+          :placeholder="$t('selectClusters')"
+          @change="onClusterChange"
+        >
           <el-option v-for="item in clusterOptions" :key="item.value" :label="item.label" :value="item.value"></el-option>
         </el-select>
+      </div>
+      <div v-if="selectedMode === 'cluster'" class="control-item">
+        <el-checkbox v-model="showClusterLabels" @change="onShowClusterLabelsChange">{{ $t("showClusterLabels") }}</el-checkbox>
       </div>
       <div v-if="selectedMode === 'cluster'" class="control-item">
         <label>{{ $t("lowRender") }}</label>
@@ -156,8 +166,8 @@ export default {
   },
   data() {
     return {
-      selectedDataSource: "cluster",
-      selectedDataType: "",
+      selectedDataSource: "umap",
+      selectedDataType: "spatial-RNA-seq",
       selectedMode: "cluster",
       pointSize: 1,
       lowRenderEnabled: true,

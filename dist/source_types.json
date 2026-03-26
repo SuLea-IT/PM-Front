@@ -72,5 +72,7 @@
     "16d_10x_1",
     "16d_10x_2"
   ],
-  "umap": []
+  "umap": [
+    "spatial_RNA-seq"
+  ]
 }

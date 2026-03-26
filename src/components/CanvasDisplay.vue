@@ -7,13 +7,26 @@
       <button @click="switchTool('select')" class="tool-button" :class="{ active: isSelecting }" title="Select">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M16 4H8C5.79 4 4 5.79 4 8v8c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4V8c0-2.21-1.79-4-4-4zm-2 10h-4v-4h4v4z"/></svg>
       </button>
-      <button @click="resetView" class="tool-button" title="Reset">
+      <button @click="handleResetViewClick" class="tool-button" title="Reset">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
       </button>
+      <div class="rotate-control">
+        <span class="rotate-label">{{ $t("rotateCanvas") }}</span>
+        <input
+          v-model.number="rotationAngle"
+          type="range"
+          min="-180"
+          max="180"
+          step="1"
+          class="rotate-slider"
+          @input="onRotationChange"
+        />
+        <span class="rotate-value">{{ rotationAngle }}&deg;</span>
+      </div>
     </div>
-    <div ref="deckContainer" class="deck-container"></div>
+    <div ref="deckContainer" class="deck-container" :style="{ cursor: canvasCursor }"></div>
     <div v-if="showDefaultImage" class="default-image-mask">
-      <img src="/default.png" alt="default" class="default-image" />
+      <img :src="defaultImageSrc" alt="default" class="default-image" />
     </div>
     <div v-if="!showDefaultImage" ref="selectionBox" class="selection" id="selection-box" style="display: none"></div>
     <div v-if="mode !== 'cluster' && allPoints.length > 0" class="legend-bar">
@@ -33,6 +46,8 @@ import { apiConfig } from "../config/apiConfig";
 import { quadtree as d3_quadtree } from "d3-quadtree";
 import { Deck, OrthographicView } from '@deck.gl/core';
 import { ScatterplotLayer, TextLayer } from '@deck.gl/layers';
+import { Matrix4 } from '@math.gl/core';
+import { isDark } from "../theme/composables/dark";
 
 export default {
   name: "CanvasDisplay",
@@ -46,6 +61,7 @@ export default {
     selectedClustersProp: Array,
     selectedPointsProp: Array,
     visibleClusters: Array,
+    clusterMeta: Array,
     showClusterBg: Boolean,
     showClusterLabels: Boolean,
     geneOpacity: {
@@ -123,6 +139,7 @@ export default {
       quadtree: null,
       geneValueMin: 0,
       geneValueMax: 0,
+      rotationAngle: 0,
       // rAF-based redraw control
       _rafId: 0,
       _pendingRedraw: false,
@@ -132,10 +149,16 @@ export default {
     showDefaultImage() {
       return this.dataSource === 'cluster';
     },
+    defaultImageSrc() {
+      return isDark.value ? "/dark.png" : "/light.png";
+    },
     legendGradientStyle() {
       return {
         background: `linear-gradient(to right, ${this.minColor}, ${this.midColor}, ${this.maxColor})`
       };
+    },
+    canvasCursor() {
+      return this.isSelecting ? "crosshair" : "grab";
     }
   },
   methods: {
@@ -158,7 +181,7 @@ export default {
       const type = (this.dataType || "").trim();
       const safeType = encodeURIComponent(type);
 
-      if (source === "umap") return "/umap/clusters.json";
+      if (source === "umap") return type ? `/umap/${safeType}/clusters.json` : "/umap/clusters.json";
       if (source === "xenium") return type ? `/xenium/${safeType}/clusters.json` : "/xenium/clusters.json";
       if (source === "spatial") return type ? `/spatial/${safeType}/clusters.json` : null;
       if (source === "singleCell") return type ? `/singleCell/${safeType}/clusters.json` : null;
@@ -167,9 +190,8 @@ export default {
       return null;
     },
     parseClusterJsonPoints(clusterJson) {
-      const points = [];
+      const rawPoints = [];
       const colorByCluster = new Map();
-      const clusterSums = {};
 
       Object.entries(clusterJson || {}).forEach(([rawId, payload]) => {
         const parsed = Number(rawId);
@@ -184,7 +206,7 @@ export default {
           if (!Number.isFinite(x) || !Number.isFinite(y)) return;
 
           const cellName = cell?.cell || `${clusterId}_${idx}`;
-          points.push({
+          rawPoints.push({
             x,
             y,
             value: clusterId,
@@ -192,17 +214,117 @@ export default {
             color,
             cellName: `${clusterId}_${cellName}`
           });
-
-          if (!clusterSums[clusterId]) {
-            clusterSums[clusterId] = { x: 0, y: 0, count: 0 };
-          }
-          clusterSums[clusterId].x += x;
-          clusterSums[clusterId].y += y;
-          clusterSums[clusterId].count++;
         });
       });
 
+      const points = this.filterXeniumNoisePoints(rawPoints);
+      const clusterSums = {};
+      points.forEach((point) => {
+        if (!clusterSums[point.clusterId]) {
+          clusterSums[point.clusterId] = { x: 0, y: 0, count: 0 };
+        }
+        clusterSums[point.clusterId].x += point.x;
+        clusterSums[point.clusterId].y += point.y;
+        clusterSums[point.clusterId].count += 1;
+      });
+
       return { points, colorByCluster, clusterSums };
+    },
+    filterXeniumNoisePoints(points) {
+      if (this.dataSource !== "xenium" || !Array.isArray(points) || points.length < 100) {
+        return points;
+      }
+
+      let minX = Infinity;
+      let maxX = -Infinity;
+      let minY = Infinity;
+      let maxY = -Infinity;
+      for (const point of points) {
+        if (point.x < minX) minX = point.x;
+        if (point.x > maxX) maxX = point.x;
+        if (point.y < minY) minY = point.y;
+        if (point.y > maxY) maxY = point.y;
+      }
+
+      const width = Math.max(maxX - minX, 1e-6);
+      const height = Math.max(maxY - minY, 1e-6);
+      const baseSpacing = Math.sqrt((width * height) / points.length);
+      const radius = Math.max(baseSpacing * 3.5, Math.min(width, height) * 0.012, 1e-6);
+      const radiusSq = radius * radius;
+      const cellSize = radius;
+      const grid = new Map();
+
+      const getKey = (gx, gy) => `${gx},${gy}`;
+      points.forEach((point, index) => {
+        const gx = Math.floor((point.x - minX) / cellSize);
+        const gy = Math.floor((point.y - minY) / cellSize);
+        const key = getKey(gx, gy);
+        if (!grid.has(key)) grid.set(key, []);
+        grid.get(key).push(index);
+      });
+
+      const visited = new Array(points.length).fill(false);
+      const components = [];
+
+      for (let i = 0; i < points.length; i++) {
+        if (visited[i]) continue;
+
+        const queue = [i];
+        const component = [];
+        visited[i] = true;
+
+        while (queue.length > 0) {
+          const index = queue.pop();
+          const point = points[index];
+          component.push(index);
+
+          const gx = Math.floor((point.x - minX) / cellSize);
+          const gy = Math.floor((point.y - minY) / cellSize);
+
+          for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+              const bucket = grid.get(getKey(gx + dx, gy + dy));
+              if (!bucket) continue;
+
+              for (const neighborIndex of bucket) {
+                if (visited[neighborIndex]) continue;
+                const neighbor = points[neighborIndex];
+                const distX = point.x - neighbor.x;
+                const distY = point.y - neighbor.y;
+                if ((distX * distX) + (distY * distY) <= radiusSq) {
+                  visited[neighborIndex] = true;
+                  queue.push(neighborIndex);
+                }
+              }
+            }
+          }
+        }
+
+        components.push(component);
+      }
+
+      if (components.length <= 1) {
+        return points;
+      }
+
+      const largestComponentSize = Math.max(...components.map((component) => component.length));
+      const minComponentSize = Math.max(
+        20,
+        Math.floor(points.length * 0.004),
+        Math.floor(largestComponentSize * 0.02)
+      );
+
+      const keptIndices = new Set(
+        components
+          .filter((component) => component.length >= minComponentSize)
+          .flat()
+      );
+
+      if (keptIndices.size === 0 || keptIndices.size === points.length) {
+        return points;
+      }
+
+      return points.filter((_, index) => keptIndices.has(index));
     },
     applyGeneJson(geneJson) {
       const firstKey = Object.keys(geneJson || {})[0];
@@ -255,7 +377,7 @@ export default {
       }
     },
     applyClusterJson(clusterJson) {
-      const { points, colorByCluster } = this.parseClusterJsonPoints(clusterJson);
+      const { points, colorByCluster, clusterSums } = this.parseClusterJsonPoints(clusterJson);
       this.allPoints = points;
 
       const uniqueClusters = [...new Set(points.map(p => p.clusterId))].sort((a, b) => {
@@ -276,6 +398,12 @@ export default {
         id,
         name: `Cluster ${id}`,
         color: colorByCluster.get(id) || "#999999"
+      }));
+      this.clusterLabels = Object.entries(clusterSums).map(([id, data]) => ({
+        id: `C${id}`,
+        clusterId: Number.isNaN(Number(id)) ? id : Number(id),
+        x: data.x / data.count,
+        y: data.y / data.count,
       }));
       this.$emit('update:cluster-meta', clusterMeta);
 
@@ -314,6 +442,7 @@ export default {
             this.clusterPoints = points;
             this.clusterLabels = Object.entries(clusterSums).map(([id, data]) => ({
               id: `C${id}`,
+              clusterId: Number.isNaN(Number(id)) ? id : Number(id),
               x: data.x / data.count,
               y: data.y / data.count,
             }));
@@ -328,6 +457,7 @@ export default {
               this.clusterPoints = points;
               this.clusterLabels = Object.entries(clusterSums).map(([id, data]) => ({
                 id: `C${id}`,
+                clusterId: Number.isNaN(Number(id)) ? id : Number(id),
                 x: data.x / data.count,
                 y: data.y / data.count,
               }));
@@ -340,6 +470,7 @@ export default {
                 this.clusterPoints = points;
                 this.clusterLabels = Object.entries(clusterSums).map(([id, data]) => ({
                   id: `C${id}`,
+                  clusterId: Number.isNaN(Number(id)) ? id : Number(id),
                   x: data.x / data.count,
                   y: data.y / data.count,
                 }));
@@ -450,10 +581,15 @@ export default {
         }));
 
         if (this.mode === 'cluster') {
+            this.allPoints = this.filterXeniumNoisePoints(this.allPoints);
+        }
+
+        if (this.mode === 'cluster') {
             const uniqueClusters = [...new Set(this.allPoints.map(p => p.value))].sort((a, b) => a - b);
             const colors = this.generateDistinctColors(uniqueClusters.length);
             const clusterMap = new Map(uniqueClusters.map((id, index) => [id, colors[index]]));
             this.clusterOrder = uniqueClusters;
+            const clusterSums = {};
             
             const clusterMeta = uniqueClusters.map((id, index) => ({
                 id: id,
@@ -467,13 +603,26 @@ export default {
                 p.color = clusterMap.get(p.value);
                 p.cellName = `${p.value}_${p.cellName}`;
                 p.clusterId = p.value; // Keep original id
+                if (!clusterSums[p.clusterId]) {
+                    clusterSums[p.clusterId] = { x: 0, y: 0, count: 0 };
+                }
+                clusterSums[p.clusterId].x += p.x;
+                clusterSums[p.clusterId].y += p.y;
+                clusterSums[p.clusterId].count += 1;
                 if (!this.pointsByCluster.has(p.clusterId)) this.pointsByCluster.set(p.clusterId, []);
                 this.pointsByCluster.get(p.clusterId).push(p);
             });
+            this.clusterLabels = Object.entries(clusterSums).map(([id, data]) => ({
+                id: `C${id}`,
+                clusterId: Number.isNaN(Number(id)) ? id : Number(id),
+                x: data.x / data.count,
+                y: data.y / data.count,
+            }));
             
             this.$emit('update:cluster-meta', clusterMeta);
 
         } else { // Gene or Gene-set mode
+            this.clusterLabels = [];
             this.geneValueMin = minV;
             this.geneValueMax = maxV;
             // Colors for gene mode are calculated on-the-fly in redrawUMAP
@@ -505,7 +654,6 @@ export default {
         const dataView = new DataView(arrayBuffer);
         const numPoints = arrayBuffer.byteLength / 12;
         const points = [];
-        const clusterSums = {};
 
         for (let i = 0; i < numPoints; i++) {
             const offset = i * 12;
@@ -513,29 +661,34 @@ export default {
             const y = dataView.getFloat32(offset + 4, true);
             const value = dataView.getFloat32(offset + 8, true);
             points.push({ x, y, value });
-
-            if (!clusterSums[value]) {
-                clusterSums[value] = { x: 0, y: 0, count: 0 };
-            }
-            clusterSums[value].x += x;
-            clusterSums[value].y += y;
-            clusterSums[value].count++;
         }
+
+        const filteredPoints = this.filterXeniumNoisePoints(points);
+        const clusterSums = {};
+        filteredPoints.forEach((point) => {
+            if (!clusterSums[point.value]) {
+                clusterSums[point.value] = { x: 0, y: 0, count: 0 };
+            }
+            clusterSums[point.value].x += point.x;
+            clusterSums[point.value].y += point.y;
+            clusterSums[point.value].count += 1;
+        });
 
         this.clusterLabels = Object.entries(clusterSums).map(([id, data]) => ({
             id: `C${id}`,
+            clusterId: Number.isNaN(Number(id)) ? id : Number(id),
             x: data.x / data.count,
             y: data.y / data.count,
         }));
 
-        const uniqueClusters = [...new Set(points.map(p => p.value))].sort((a, b) => a - b);
+        const uniqueClusters = [...new Set(filteredPoints.map(p => p.value))].sort((a, b) => a - b);
         const colors = this.generateDistinctColors(uniqueClusters.length); // Do not apply opacity here
         const clusterMap = new Map(uniqueClusters.map((id, index) => [id, colors[index]]));
 
-        points.forEach(p => {
+        filteredPoints.forEach(p => {
             p.color = clusterMap.get(p.value);
         });
-        return points;
+        return filteredPoints;
     },
 
     generateDistinctColors(count, opacity = 1) {
@@ -685,14 +838,36 @@ export default {
       const zoom = Math.log2(scale);
       const centerX = (minX + maxX) / 2;
       const centerY = (minY + maxY) / 2;
-      this.viewState = { target: [centerX, centerY, 0], zoom, minZoom: -10, maxZoom: 20 };
-      // Only set initialViewState; let deck manage viewState for interactivity
-      this.deck.setProps({ initialViewState: this.viewState });
+      this.setDeckViewState({
+        target: [centerX, centerY, 0],
+        zoom,
+        minZoom: -10,
+        maxZoom: 20,
+        rotationOrbit: this.rotationAngle || 0,
+      });
       this.updateDeckLayers();
+    },
+    setDeckViewState(nextViewState) {
+      if (!this.deck) return;
+      this.viewState = {
+        ...(this.viewState || {}),
+        ...nextViewState,
+      };
+      this.deck.setProps({ viewState: this.viewState });
     },
     
     requestRedraw() {
       this.updateDeckLayers();
+    },
+
+    getRotationModelMatrix() {
+      const angle = ((this.rotationAngle || 0) * Math.PI) / 180;
+      if (!angle) return new Matrix4();
+      const [centerX = 0, centerY = 0] = this.viewState?.target || [0, 0, 0];
+      return new Matrix4()
+        .translate([centerX, centerY, 0])
+        .rotateZ(angle)
+        .translate([-centerX, -centerY, 0]);
     },
 
     updateDeckLayers() {
@@ -700,15 +875,21 @@ export default {
       const selectedSet = new Set((this.selectedPointsProp || []).map(p => p.cellName));
       const hasSelection = selectedSet.size > 0;
       const visibleSet = new Set(this.visibleClusters || []);
+      const clusterMetaMap = new Map((this.clusterMeta || []).map(meta => [meta.id, meta]));
+      const clusterMetaSignature = (this.clusterMeta || [])
+        .map(({ id, name, color }) => `${id}:${name}:${color}`)
+        .join('|');
       const mode = this.mode;
       const minV = this.geneValueMin;
       const maxV = this.geneValueMax;
       const self = this;
+      const modelMatrix = this.getRotationModelMatrix();
 
       // default coloring layer (used when not in step-reveal mode or when selection active)
       const pointsLayer = new ScatterplotLayer({
         id: this.pointLayerId,
         data: this.allPoints,
+        modelMatrix,
         pickable: true,
         radiusUnits: 'pixels',
         getRadius: this.pointSize,
@@ -717,7 +898,7 @@ export default {
           if (mode === 'cluster') {
             if (visibleSet.size && !visibleSet.has(d.clusterId)) return [0,0,0,0];
             if (hasSelection && !selectedSet.has(d.cellName)) return [200,200,200,128];
-            return self.cssColorToRgbaArray(d.color, 255);
+            return self.cssColorToRgbaArray(clusterMetaMap.get(d.clusterId)?.color || d.color, 255);
           } else {
             const range = maxV - minV;
             const intensity = range > 0 ? (d.value - minV) / range : 0;
@@ -725,7 +906,7 @@ export default {
           }
         },
         updateTriggers: {
-          getFillColor: [mode, hasSelection, [...selectedSet].join(','), [...visibleSet].join(','), minV, maxV, this.geneOpacity, this.minColor, this.midColor, this.maxColor],
+          getFillColor: [mode, hasSelection, [...selectedSet].join(','), [...visibleSet].join(','), minV, maxV, this.geneOpacity, this.minColor, this.midColor, this.maxColor, clusterMetaSignature],
           getRadius: [this.pointSize]
         }
       });
@@ -740,6 +921,7 @@ export default {
           layers.push(new ScatterplotLayer({
             id: this.pointLayerId + '-grey',
             data: this.allPoints,
+            modelMatrix,
             pickable: true,
             radiusUnits: 'pixels',
             getRadius: this.pointSize,
@@ -760,6 +942,7 @@ export default {
         layers.push(new ScatterplotLayer({
           id: this.pointLayerId + '-grey',
           data: this.allPoints,
+          modelMatrix,
           pickable: true,
           radiusUnits: 'pixels',
           getRadius: this.pointSize,
@@ -778,6 +961,7 @@ export default {
         layers.push(new ScatterplotLayer({
           id: this.pointLayerId + '-reveal',
           data: this.allPoints,
+          modelMatrix,
           pickable: true,
           radiusUnits: 'pixels',
           getRadius: this.pointSize,
@@ -785,10 +969,10 @@ export default {
           getFillColor: d => {
             if (visibleSet.size && !visibleSet.has(d.clusterId)) return [0,0,0,0];
             if (!revealSet.has(d.clusterId)) return [0,0,0,0];
-            return self.cssColorToRgbaArray(d.color, 255);
+            return self.cssColorToRgbaArray(clusterMetaMap.get(d.clusterId)?.color || d.color, 255);
           },
           updateTriggers: {
-            getFillColor: [[...visibleSet].join(','), revealCount, this.minColor, this.midColor, this.maxColor],
+            getFillColor: [[...visibleSet].join(','), revealCount, this.minColor, this.midColor, this.maxColor, clusterMetaSignature],
             getRadius: [this.pointSize]
           }
         }));
@@ -802,24 +986,33 @@ export default {
         layers.unshift(new ScatterplotLayer({
           id: this.bgLayerId,
           data: this.clusterPoints,
+          modelMatrix,
           pickable: false,
           radiusUnits: 'pixels',
           getRadius: this.pointSize,
           getPosition: d => [d.x, d.y, 0],
-          getFillColor: d => self.cssColorToRgbaArray(d.color, Math.round(self.clusterBgOpacity * 255)),
-          updateTriggers: { getFillColor: [this.clusterBgOpacity] }
+          getFillColor: d => self.cssColorToRgbaArray(clusterMetaMap.get(d.clusterId ?? d.value)?.color || d.color, Math.round(self.clusterBgOpacity * 255)),
+          updateTriggers: { getFillColor: [this.clusterBgOpacity, clusterMetaSignature] }
         }));
       }
 
-      if (this.mode === 'gene' && this.showClusterBg && this.showClusterLabels && this.clusterLabels.length > 0) {
+      const labelData = visibleSet.size
+        ? this.clusterLabels.filter(label => visibleSet.has(label.clusterId))
+        : this.clusterLabels;
+
+      if (((this.mode === 'cluster') || (this.mode === 'gene' && this.showClusterBg)) && this.showClusterLabels && labelData.length > 0) {
         layers.push(new TextLayer({
           id: this.labelLayerId,
-          data: this.clusterLabels,
+          data: labelData,
+          modelMatrix,
           getPosition: d => [d.x, d.y, 0],
-          getText: d => d.id,
+          getText: d => clusterMetaMap.get(d.clusterId)?.name || d.id,
           getColor: [0,0,0,255],
           getSize: 12,
-          sizeUnits: 'pixels'
+          sizeUnits: 'pixels',
+          updateTriggers: {
+            getText: [clusterMetaSignature]
+          }
         }));
       }
 
@@ -836,7 +1029,7 @@ export default {
         canvas.addEventListener("mousedown", this.onMouseDown);
         canvas.addEventListener("mousemove", this.onMouseMove);
         canvas.addEventListener("mouseup", this.onMouseUp);
-        canvas.addEventListener("mouseleave", () => (this.isDragging = false));
+        canvas.addEventListener("mouseleave", this.onMouseLeave);
         // Do not intercept wheel; let deck.gl handle zoom
     },
     
@@ -855,6 +1048,7 @@ export default {
             this.startX = mouseX;
             this.startY = mouseY;
             const selectionBox = this.$refs.selectionBox;
+            if (!selectionBox) return;
             selectionBox.style.left = `${mouseX}px`;
             selectionBox.style.top = `${mouseY}px`;
             selectionBox.style.width = '0px';
@@ -874,22 +1068,23 @@ export default {
             const width = mouseX - this.startX;
             const height = mouseY - this.startY;
             const selectionBox = this.$refs.selectionBox;
+            if (!selectionBox) return;
             selectionBox.style.width = `${Math.abs(width)}px`;
             selectionBox.style.height = `${Math.abs(height)}px`;
             selectionBox.style.left = `${width > 0 ? this.startX : mouseX}px`;
             selectionBox.style.top = `${height > 0 ? this.startY : mouseY}px`;
-        } else {
-            // panning is handled by deck.gl controller when not selecting
         }
     },
 
-    onMouseUp(e) {
+    onMouseUp() {
         if (this.isSelecting && this.isDragging) {
             this.updateSelectedPoints();
-            this.$refs.selectionBox.style.width = '0px';
-            this.$refs.selectionBox.style.height = '0px';
-            this.$refs.selectionBox.style.display = 'none';
+            this.hideSelectionBox();
         }
+        this.isDragging = false;
+    },
+
+    onMouseLeave() {
         this.isDragging = false;
     },
     
@@ -897,17 +1092,65 @@ export default {
 
     switchTool(tool) {
         this.isSelecting = tool === 'select';
+        if (!this.isSelecting) {
+          this.hideSelectionBox();
+        }
         if (this.deck) {
           const enable = !this.isSelecting;
-          this.deck.setProps({ controller: { dragPan: enable, scrollZoom: enable, doubleClickZoom: enable, touchZoom: enable, touchRotate: false, dragRotate: false } });
+          this.deck.setProps({
+            controller: {
+              dragPan: enable,
+              scrollZoom: true,
+              doubleClickZoom: true,
+              touchZoom: true,
+              touchRotate: false,
+              dragRotate: false,
+            }
+          });
         }
     },
-
-    resetView() {
+    onRotationChange() {
+        if (this.deck && this.viewState) {
+          this.setDeckViewState({ rotationOrbit: this.rotationAngle || 0 });
+        }
+        this.requestRedraw();
+    },
+    handleResetViewClick() {
+        this.resetView(0);
+    },
+    resetView(rotationAngle = this.rotationAngle) {
         this.isSelecting = false;
+        this.rotationAngle = rotationAngle || 0;
+        this.hideSelectionBox();
         this.$emit('update:selected-clusters', []);
         this.$emit('update:selected-points', []);
         this.autoAdjustView();
+        if (this.viewState) {
+          this.setDeckViewState({
+            ...this.viewState,
+            rotationOrbit: rotationAngle || 0,
+          });
+        }
+        if (this.deck) {
+          this.deck.setProps({
+            controller: {
+              dragPan: true,
+              scrollZoom: true,
+              doubleClickZoom: true,
+              touchZoom: true,
+              touchRotate: false,
+              dragRotate: false,
+            }
+          });
+        }
+    },
+
+    hideSelectionBox() {
+      const selectionBox = this.$refs.selectionBox;
+      if (!selectionBox) return;
+      selectionBox.style.width = '0px';
+      selectionBox.style.height = '0px';
+      selectionBox.style.display = 'none';
     },
     
     updateSelectedPoints() {
@@ -931,7 +1174,9 @@ export default {
     },
 
     getCanvas() {
-        return this.deck ? this.deck.canvas : null;
+        if (!this.deck) return null;
+        this.deck.redraw("export-canvas");
+        return this.deck.canvas;
     },
   },
   watch: {
@@ -944,6 +1189,10 @@ export default {
     pointSize() { this.requestRedraw(); },
     selectedPointsProp() { this.requestRedraw(); },
     visibleClusters() { this.requestRedraw(); },
+    clusterMeta: {
+      handler() { this.requestRedraw(); },
+      deep: true,
+    },
     geneOpacity() { this.requestRedraw(); },
     clusterBgOpacity() { this.requestRedraw(); },
     showClusterLabels() { this.requestRedraw(); },
@@ -955,11 +1204,30 @@ export default {
   },
   mounted() {
     const parent = this.$refs.deckContainer;
+    this.viewState = {
+      target: [0, 0, 0],
+      zoom: 0,
+      minZoom: -10,
+      maxZoom: 20,
+      rotationOrbit: this.rotationAngle || 0,
+    };
     this.deck = new Deck({
       parent,
       views: [new OrthographicView({id: 'ortho'})],
+      initialViewState: this.viewState,
+      viewState: this.viewState,
+      glOptions: {
+        preserveDrawingBuffer: true,
+      },
       controller: { dragPan: true, scrollZoom: true, doubleClickZoom: true, touchZoom: true, touchRotate: false, dragRotate: false },
-      onViewStateChange: ({viewState}) => { this.viewState = viewState; }
+      onViewStateChange: ({viewState}) => {
+        this.viewState = {
+          ...viewState,
+          rotationOrbit: viewState.rotationOrbit ?? this.rotationAngle ?? 0,
+        };
+        this.rotationAngle = Math.round(this.viewState.rotationOrbit || 0);
+        this.deck?.setProps({ viewState: this.viewState });
+      }
     });
     window.addEventListener("resize", this.onWindowResize);
     this.loadAndDrawUMAPData();
@@ -971,7 +1239,7 @@ export default {
         container.removeEventListener("mousedown", this.onMouseDown);
         container.removeEventListener("mousemove", this.onMouseMove);
         container.removeEventListener("mouseup", this.onMouseUp);
-        container.removeEventListener("mouseleave", () => (this.isDragging = false));
+        container.removeEventListener("mouseleave", this.onMouseLeave);
     }
     if (this.deck) { this.deck.finalize(); this.deck = null; }
   }
@@ -991,6 +1259,8 @@ export default {
   left: 10px;
   z-index: 10;
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 5px;
   background-color: var(--el-toolbar-bg-color, rgba(255, 255, 255, 0.8));
   padding: 5px;
@@ -1013,6 +1283,21 @@ export default {
 .tool-button svg {
   width: 20px;
   height: 20px;
+}
+.rotate-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 6px 0 8px;
+}
+.rotate-label,
+.rotate-value {
+  font-size: 12px;
+  color: var(--el-navbar-color, #333);
+  white-space: nowrap;
+}
+.rotate-slider {
+  width: 140px;
 }
 .selection {
   border: 1px dashed red;

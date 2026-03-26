@@ -49,6 +49,7 @@
         :selectedClustersProp="selectedClusters"
         :selectedPointsProp="selectedPoints"
         :visibleClusters="visibleClusters"
+        :clusterMeta="clusterMeta"
         :showClusterBg="showClusterBg"
         :showClusterLabels="showClusterLabels"
         :geneOpacity="geneOpacity"
@@ -63,7 +64,7 @@
         @update:gene-stats="geneStats = $event"
       />
       <Legend
-        v-if="false"
+        v-if="mode === 'cluster' && clusterMeta.length > 0"
         :items="clusterMeta"
         :visibleClusters="visibleClusters"
         @update:visible-clusters="visibleClusters = $event"
@@ -104,8 +105,8 @@ export default {
       stepRevealCount: 0,
       stepRevealTimer: null,
       stepRevealInterval: 400,
-      dataSource: "cluster",
-      dataType: "",
+      dataSource: "umap",
+      dataType: "spatial_RNA-seq",
       mode: "cluster",
       pointSize: 1,
       geneName: "",
@@ -116,6 +117,7 @@ export default {
       clusterOptions: [],
       visibleClusters: [],
       clusterMeta: [],
+      clusterCustomizationCache: {},
       showClusterBg: false,
       showClusterLabels: false,
       geneOpacity: 1,
@@ -134,6 +136,59 @@ export default {
     this.stopStepRevealAutoPlay();
   },
   methods: {
+    getClusterDatasetKey() {
+      return `${this.dataSource || "unknown"}::${this.dataType || "__default__"}`;
+    },
+    getClusterCustomizationStorageKey() {
+      return `pm-cluster-customization:${this.getClusterDatasetKey()}`;
+    },
+    loadPersistedClusterCustomizations() {
+      try {
+        const raw = localStorage.getItem(this.getClusterCustomizationStorageKey());
+        if (!raw) return {};
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === "object" ? parsed : {};
+      } catch (error) {
+        return {};
+      }
+    },
+    getClusterCustomizations() {
+      const datasetKey = this.getClusterDatasetKey();
+      if (this.clusterCustomizationCache[datasetKey]) {
+        return this.clusterCustomizationCache[datasetKey];
+      }
+      const persisted = this.loadPersistedClusterCustomizations();
+      this.clusterCustomizationCache = {
+        ...this.clusterCustomizationCache,
+        [datasetKey]: persisted,
+      };
+      return persisted;
+    },
+    applyClusterCustomizations(meta) {
+      const overrides = this.getClusterCustomizations();
+      return (meta || []).map((item) => {
+        const override = overrides[item.id];
+        return override ? { ...item, ...override } : item;
+      });
+    },
+    syncClusterOptions() {
+      this.clusterOptions = this.clusterMeta.map((g) => ({ value: g.id, label: g.name }));
+    },
+    saveClusterCustomizations() {
+      const datasetKey = this.getClusterDatasetKey();
+      const payload = this.clusterMeta.reduce((acc, item) => {
+        acc[item.id] = {
+          name: item.name,
+          color: item.color,
+        };
+        return acc;
+      }, {});
+      this.clusterCustomizationCache = {
+        ...this.clusterCustomizationCache,
+        [datasetKey]: payload,
+      };
+      localStorage.setItem(this.getClusterCustomizationStorageKey(), JSON.stringify(payload));
+    },
     async loadSourceTypeManifest() {
       if (this.sourceTypeManifest) return this.sourceTypeManifest;
       try {
@@ -154,8 +209,8 @@ export default {
         return;
       }
       if (this.dataSource === 'umap') {
-        this.dataTypes = ['default'];
-        this.dataType = 'default';
+        this.dataTypes = ['spatial_RNA-seq'];
+        this.dataType = 'spatial_RNA-seq';
         return;
       }
       try {
@@ -180,9 +235,9 @@ export default {
       this.chartType = 'pie'; // Reset to default
     },
     onClusterMetaUpdate(meta) {
-      this.clusterMeta = meta;
-      this.clusterOptions = meta.map((g) => ({ value: g.id, label: g.name }));
-      this.visibleClusters = meta.map(g => g.id); // Default all to visible
+      this.clusterMeta = this.applyClusterCustomizations(meta);
+      this.syncClusterOptions();
+      this.visibleClusters = this.clusterMeta.map(g => g.id); // Default all to visible
       // Reset step reveal on new data to show grey shapes first
       this.stepRevealEnabled = true;
       this.stepRevealCount = 0;
@@ -213,12 +268,20 @@ export default {
             selectedClusterIds.includes(metaItem.id)
         );
     },
+    getExportThemeColors() {
+      const rootStyle = getComputedStyle(document.documentElement);
+      return {
+        background: rootStyle.getPropertyValue('--el-canvas-bg-color').trim() || '#ffffff',
+        text: rootStyle.getPropertyValue('--el-navbar-color').trim() || '#000000',
+      };
+    },
     downloadWithLegend() {
       const umapCanvas = this.$refs.canvasDisplay.getCanvas();
       if (!umapCanvas) return;
+      const { background, text } = this.getExportThemeColors();
 
       const legendItems = this.clusterMeta.filter((item) =>
-        this.visibleClusters.includes(item.name)
+        this.visibleClusters.includes(item.id)
       );
       const legendWidth = 200;
       const legendPadding = 20;
@@ -233,18 +296,18 @@ export default {
       offscreenCanvas.height = totalHeight;
       const ctx = offscreenCanvas.getContext("2d");
 
-      ctx.fillStyle = "white";
+      ctx.fillStyle = background;
       ctx.fillRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
       ctx.drawImage(umapCanvas, 0, 0);
 
       let y = legendPadding;
       ctx.font = "16px Arial";
-      ctx.fillStyle = "black";
+      ctx.fillStyle = text;
 
       for (const item of legendItems) {
         ctx.fillStyle = item.color;
         ctx.fillRect(umapCanvas.width + legendPadding, y, 20, 20);
-        ctx.fillStyle = "black";
+        ctx.fillStyle = text;
         ctx.fillText(item.name, umapCanvas.width + legendPadding + 30, y + 15);
         y += itemHeight;
       }
@@ -258,6 +321,9 @@ export default {
       const originalItemIndex = this.clusterMeta.findIndex(m => m.id === item.id);
       if (originalItemIndex !== -1) {
         this.clusterMeta.splice(originalItemIndex, 1, item);
+        this.clusterMeta = [...this.clusterMeta];
+        this.syncClusterOptions();
+        this.saveClusterCustomizations();
       }
     },
   },

@@ -47,11 +47,13 @@ const updateValue = (value) => {
 
 <style scoped>
 .platform-left-tag {
-  width: 240px;
+  width: 100%;
+  max-width: 320px;
   display: flex;
   flex-direction: column;
+  gap: 10px;
   box-sizing: border-box;
-  margin: 30px 0;
+  margin: 0;
 }
 .platform-left-tag :deep(.el-select__wrapper)::after {
   content: "";

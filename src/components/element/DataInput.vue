@@ -65,11 +65,13 @@ watch(
 
 <style scoped>
 .platform-left-tag {
-  width: 240px;
+  width: 100%;
+  max-width: 320px;
   display: flex;
   flex-direction: column;
+  gap: 10px;
   box-sizing: border-box;
-  margin: 30px 0;
+  margin: 0;
 }
 
 .platform-left-tag :deep(.el-input__wrapper)::after {
@@ -87,6 +89,6 @@ watch(
 .error-message {
   color: red;
   font-size: 12px;
-  margin-top: 5px;
+  margin-top: -2px;
 }
 </style>
