@@ -113,7 +113,7 @@ const messages = {
     uploadStepTwoDescription: "Select your data display type",
     dataUsagePrivacyTitle: "Data Usage & Privacy",
     dataUsagePrivacyContent:
-      "We do not use, retain, or aggregate any data uploaded to MapMyCells for internal purposes, nor do we publish your data. Our database administrators may access uploaded datasets for debugging and error resolution purposes. All files will be automatically deleted one week after upload. Please refrain from uploading any sensitive data, personally identifiable information, or protected health data that could compromise individual privacy. For more information, please refer to our Privacy Policy.",
+      "Data uploaded to single-cell-spatial is only used for analysis and debugging when needed. We do not publish your data, and uploaded files are automatically deleted after one week. Please avoid uploading sensitive or personally identifiable information.",
     singleCellData: "Single-cell data",
     singleCellSpatialData: "Single-cell spatial data",
     btSpatialData: "BTSpatial data",
@@ -232,7 +232,7 @@ const messages = {
     uploadStepTwoDescription: "选择您的数据显示类型",
     dataUsagePrivacyTitle: "数据使用与隐私",
     dataUsagePrivacyContent:
-      "我们不会将上传到 MapMyCells 的任何数据用于内部用途，也不会保留、汇总或公开您的数据。数据库管理员可能会在调试和错误排查时访问您上传的数据集。所有文件会在上传一周后自动删除。请勿上传任何敏感数据、个人身份信息或可能泄露隐私的受保护健康数据。更多信息请参阅我们的隐私政策。",
+      "上传到 single-cell-spatial 的数据仅用于分析，并在必要时用于调试。我们不会公开你的数据，所有上传文件会在一周后自动删除。请勿上传敏感或可识别个人身份的信息。",
     singleCellData: "单细胞数据",
     singleCellSpatialData: "单细胞级别空间数据",
     btSpatialData: "百迈客空间转录组数据",

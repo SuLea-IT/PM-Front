@@ -87,7 +87,7 @@ const uploadFileInChunks = async (
 const uploadFiles = async (files, email, fileType, fileNumber, fun) => {
   if (files.length === 0) {
     ElMessage.error(i18n.global.t("noFilesUploaded"));
-    return;
+    return false;
   }
 
   const sortedFiles = Array.from(files).sort((a, b) => b.size - a.size);
@@ -112,8 +112,10 @@ const uploadFiles = async (files, email, fileType, fileNumber, fun) => {
         }
       }
     }
+    return true;
   } catch (error) {
     console.error("Upload files failed:", error);
+    return false;
   }
 };
 
