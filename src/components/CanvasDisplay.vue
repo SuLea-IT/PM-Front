@@ -149,6 +149,9 @@ export default {
     showDefaultImage() {
       return this.dataSource === 'cluster';
     },
+    allowClusterLabels() {
+      return this.dataSource === 'umap';
+    },
     defaultImageSrc() {
       return isDark.value ? "/dark.png" : "/light.png";
     },
@@ -189,11 +192,32 @@ export default {
 
       return null;
     },
+    getClusterJsonConfig(clusterJson) {
+      const meta = clusterJson?._meta || clusterJson?.meta || clusterJson?.config || clusterJson?.__meta__ || {};
+      return {
+        hideClusterPrefix: clusterJson?.hideClusterPrefix === true || meta?.hideClusterPrefix === true,
+      };
+    },
+    getClusterEntries(clusterJson) {
+      const reservedKeys = new Set(["hideClusterPrefix", "_meta", "meta", "config", "__meta__"]);
+      return Object.entries(clusterJson || {}).filter(([key]) => !reservedKeys.has(key));
+    },
+    getDisplayClusterName(clusterId, payload = {}, config = {}) {
+      const rawName = String(payload?.name ?? clusterId).trim() || String(clusterId);
+      if (config.hideClusterPrefix) {
+        return rawName;
+      }
+      if (/^cluster\b/i.test(rawName)) {
+        return rawName;
+      }
+      return `Cluster ${rawName}`;
+    },
     parseClusterJsonPoints(clusterJson) {
       const rawPoints = [];
       const colorByCluster = new Map();
+      const config = this.getClusterJsonConfig(clusterJson);
 
-      Object.entries(clusterJson || {}).forEach(([rawId, payload]) => {
+      this.getClusterEntries(clusterJson).forEach(([rawId, payload]) => {
         const parsed = Number(rawId);
         const clusterId = Number.isNaN(parsed) ? rawId : parsed;
         const color = payload?.color || "#999999";
@@ -228,7 +252,7 @@ export default {
         clusterSums[point.clusterId].count += 1;
       });
 
-      return { points, colorByCluster, clusterSums };
+      return { points, colorByCluster, clusterSums, config };
     },
     filterXeniumNoisePoints(points) {
       if (this.dataSource !== "xenium" || !Array.isArray(points) || points.length < 100) {
@@ -377,7 +401,7 @@ export default {
       }
     },
     applyClusterJson(clusterJson) {
-      const { points, colorByCluster, clusterSums } = this.parseClusterJsonPoints(clusterJson);
+      const { points, colorByCluster, clusterSums, config } = this.parseClusterJsonPoints(clusterJson);
       this.allPoints = points;
 
       const uniqueClusters = [...new Set(points.map(p => p.clusterId))].sort((a, b) => {
@@ -396,7 +420,7 @@ export default {
 
       const clusterMeta = uniqueClusters.map((id) => ({
         id,
-        name: `Cluster ${id}`,
+        name: this.getDisplayClusterName(id, clusterJson?.[id], config),
         color: colorByCluster.get(id) || "#999999"
       }));
       this.clusterLabels = Object.entries(clusterSums).map(([id, data]) => ({
@@ -1000,7 +1024,7 @@ export default {
         ? this.clusterLabels.filter(label => visibleSet.has(label.clusterId))
         : this.clusterLabels;
 
-      if (((this.mode === 'cluster') || (this.mode === 'gene' && this.showClusterBg)) && this.showClusterLabels && labelData.length > 0) {
+      if (((this.mode === 'cluster') || (this.mode === 'gene' && this.showClusterBg)) && this.allowClusterLabels && this.showClusterLabels && labelData.length > 0) {
         layers.push(new TextLayer({
           id: this.labelLayerId,
           data: labelData,
@@ -1039,6 +1063,81 @@ export default {
             mouseX: e.clientX - rect.left, 
             mouseY: e.clientY - rect.top 
         };
+    },
+
+    rotatePoint(x, y, angleDeg, centerX, centerY) {
+        if (!angleDeg) return { x, y };
+        const angle = (angleDeg * Math.PI) / 180;
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+        const dx = x - centerX;
+        const dy = y - centerY;
+        return {
+          x: centerX + (dx * cos - dy * sin),
+          y: centerY + (dx * sin + dy * cos),
+        };
+    },
+
+    getSelectionPolygon(screenX, screenY, width, height) {
+      const viewport = this.deck?.getViewports?.()?.[0];
+      if (!viewport) return null;
+
+      const [centerX = 0, centerY = 0] = this.viewState?.target || [0, 0, 0];
+      const inverseAngle = -(this.rotationAngle || 0);
+      const corners = [
+        [screenX, screenY],
+        [screenX + width, screenY],
+        [screenX + width, screenY + height],
+        [screenX, screenY + height],
+      ];
+
+      return corners.map(([px, py]) => {
+        const projected = viewport.unproject([px, py]);
+        const wx = Array.isArray(projected) ? projected[0] : projected.x;
+        const wy = Array.isArray(projected) ? projected[1] : projected.y;
+        return this.rotatePoint(wx, wy, inverseAngle, centerX, centerY);
+      });
+    },
+
+    queryPointsInBounds(minX, minY, maxX, maxY) {
+      if (!this.quadtree) return [];
+      const results = [];
+      this.quadtree.visit((node, x0, y0, x1, y1) => {
+        const outside = x0 > maxX || x1 < minX || y0 > maxY || y1 < minY;
+        if (outside) return true;
+
+        if (!node.length) {
+          let current = node;
+          do {
+            const point = current.data;
+            if (
+              point &&
+              point.x >= minX && point.x <= maxX &&
+              point.y >= minY && point.y <= maxY
+            ) {
+              results.push(point);
+            }
+            current = current.next;
+          } while (current);
+        }
+        return false;
+      });
+      return results;
+    },
+
+    pointInPolygon(point, polygon) {
+      let inside = false;
+      for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+        const xi = polygon[i].x;
+        const yi = polygon[i].y;
+        const xj = polygon[j].x;
+        const yj = polygon[j].y;
+
+        const intersects = ((yi > point.y) !== (yj > point.y))
+          && (point.x < ((xj - xi) * (point.y - yi)) / ((yj - yi) || 1e-12) + xi);
+        if (intersects) inside = !inside;
+      }
+      return inside;
     },
 
     onMouseDown(e) {
@@ -1155,6 +1254,7 @@ export default {
     
     updateSelectedPoints() {
       const selectionBox = this.$refs.selectionBox;
+      if (!selectionBox) return;
       const rect = selectionBox.getBoundingClientRect();
       const canvasRect = this.deck && this.deck.canvas ? this.deck.canvas.getBoundingClientRect() : this.$refs.deckContainer.getBoundingClientRect();
       const x = rect.left - canvasRect.left;
@@ -1162,10 +1262,35 @@ export default {
       const width = rect.right - rect.left;
       const height = rect.bottom - rect.top;
       let selectedPoints = [];
+
       if (this.deck && width > 0 && height > 0) {
-        const layerIds = [this.pointLayerId, this.pointLayerId + '-grey', this.pointLayerId + '-reveal'];
-        const infos = this.deck.pickObjects({x, y, width, height, layerIds}) || [];
-        selectedPoints = infos.map(info => info.object);
+        const polygon = this.getSelectionPolygon(x, y, width, height);
+        if (polygon && polygon.length === 4) {
+          const xs = polygon.map((p) => p.x);
+          const ys = polygon.map((p) => p.y);
+          const minX = Math.min(...xs);
+          const maxX = Math.max(...xs);
+          const minY = Math.min(...ys);
+          const maxY = Math.max(...ys);
+          const visibleSet = new Set(this.visibleClusters || []);
+
+          selectedPoints = this.queryPointsInBounds(minX, minY, maxX, maxY).filter((point) => {
+            const clusterKey = point.clusterId ?? point.value;
+            if (visibleSet.size && clusterKey !== undefined && !visibleSet.has(clusterKey)) {
+              return false;
+            }
+            return this.pointInPolygon(point, polygon);
+          });
+        } else {
+          const layerIds = [this.pointLayerId, this.pointLayerId + '-grey', this.pointLayerId + '-reveal'];
+          const infos = this.deck.pickObjects({ x, y, width, height, layerIds, maxObjects: this.allPoints.length }) || [];
+          const unique = new Map();
+          infos.forEach((info) => {
+            const key = info?.object?.cellName || `${info?.object?.x},${info?.object?.y},${info?.object?.clusterId ?? info?.object?.value}`;
+            if (info?.object && !unique.has(key)) unique.set(key, info.object);
+          });
+          selectedPoints = [...unique.values()];
+        }
       }
 
       const selectedClusterIds = [...new Set(selectedPoints.map(p => p.clusterId))];

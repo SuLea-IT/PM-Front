@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import About from '../components/About.vue'
+import References from '../components/References.vue'
 import Forum from '../components/Forum.vue'
 import MainLayout from '../layouts/MainLayout.vue'
 import GlobalLayout from '../layouts/GlobalLayout.vue'
@@ -17,6 +18,10 @@ const routes = [
             {
                 path: 'forum',
                 component: Forum
+            },
+            {
+                path: 'references',
+                component: References
             },
         ]
     },

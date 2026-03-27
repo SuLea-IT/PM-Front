@@ -105,8 +105,8 @@ export default {
       stepRevealCount: 0,
       stepRevealTimer: null,
       stepRevealInterval: 400,
-      dataSource: "umap",
-      dataType: "spatial_RNA-seq",
+      dataSource: "cluster",
+      dataType: "",
       mode: "cluster",
       pointSize: 1,
       geneName: "",
@@ -117,7 +117,6 @@ export default {
       clusterOptions: [],
       visibleClusters: [],
       clusterMeta: [],
-      clusterCustomizationCache: {},
       showClusterBg: false,
       showClusterLabels: false,
       geneOpacity: 1,
@@ -136,58 +135,8 @@ export default {
     this.stopStepRevealAutoPlay();
   },
   methods: {
-    getClusterDatasetKey() {
-      return `${this.dataSource || "unknown"}::${this.dataType || "__default__"}`;
-    },
-    getClusterCustomizationStorageKey() {
-      return `pm-cluster-customization:${this.getClusterDatasetKey()}`;
-    },
-    loadPersistedClusterCustomizations() {
-      try {
-        const raw = localStorage.getItem(this.getClusterCustomizationStorageKey());
-        if (!raw) return {};
-        const parsed = JSON.parse(raw);
-        return parsed && typeof parsed === "object" ? parsed : {};
-      } catch (error) {
-        return {};
-      }
-    },
-    getClusterCustomizations() {
-      const datasetKey = this.getClusterDatasetKey();
-      if (this.clusterCustomizationCache[datasetKey]) {
-        return this.clusterCustomizationCache[datasetKey];
-      }
-      const persisted = this.loadPersistedClusterCustomizations();
-      this.clusterCustomizationCache = {
-        ...this.clusterCustomizationCache,
-        [datasetKey]: persisted,
-      };
-      return persisted;
-    },
-    applyClusterCustomizations(meta) {
-      const overrides = this.getClusterCustomizations();
-      return (meta || []).map((item) => {
-        const override = overrides[item.id];
-        return override ? { ...item, ...override } : item;
-      });
-    },
     syncClusterOptions() {
       this.clusterOptions = this.clusterMeta.map((g) => ({ value: g.id, label: g.name }));
-    },
-    saveClusterCustomizations() {
-      const datasetKey = this.getClusterDatasetKey();
-      const payload = this.clusterMeta.reduce((acc, item) => {
-        acc[item.id] = {
-          name: item.name,
-          color: item.color,
-        };
-        return acc;
-      }, {});
-      this.clusterCustomizationCache = {
-        ...this.clusterCustomizationCache,
-        [datasetKey]: payload,
-      };
-      localStorage.setItem(this.getClusterCustomizationStorageKey(), JSON.stringify(payload));
     },
     async loadSourceTypeManifest() {
       if (this.sourceTypeManifest) return this.sourceTypeManifest;
@@ -235,7 +184,7 @@ export default {
       this.chartType = 'pie'; // Reset to default
     },
     onClusterMetaUpdate(meta) {
-      this.clusterMeta = this.applyClusterCustomizations(meta);
+      this.clusterMeta = meta;
       this.syncClusterOptions();
       this.visibleClusters = this.clusterMeta.map(g => g.id); // Default all to visible
       // Reset step reveal on new data to show grey shapes first
@@ -317,18 +266,20 @@ export default {
       link.href = offscreenCanvas.toDataURL("image/png");
       link.click();
     },
-    handleItemUpdate({ index, item }) {
+    async handleItemUpdate({ index, item }) {
       const originalItemIndex = this.clusterMeta.findIndex(m => m.id === item.id);
       if (originalItemIndex !== -1) {
         this.clusterMeta.splice(originalItemIndex, 1, item);
         this.clusterMeta = [...this.clusterMeta];
         this.syncClusterOptions();
-        this.saveClusterCustomizations();
       }
     },
   },
   watch: {
     dataSource() {
+      if (this.dataSource !== 'umap') {
+        this.showClusterLabels = false;
+      }
       this.fetchDataTypes();
     },
     stepRevealEnabled(newVal) {

@@ -1,191 +1,1061 @@
-<template>
-  <div class="content">
-    <svg width="1280" height="720" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-      overflow="hidden">
-      <defs>
-        <filter id="fx0" x="-10%" y="-10%" width="120%" height="120%" filterUnits="userSpaceOnUse"
-          primitiveUnits="userSpaceOnUse">
-          <feComponentTransfer color-interpolation-filters="sRGB">
-            <feFuncR type="discrete" tableValues="0 0" />
-            <feFuncG type="discrete" tableValues="0 0" />
-            <feFuncB type="discrete" tableValues="0 0" />
-            <feFuncA type="linear" slope="0.14902" intercept="0" />
-          </feComponentTransfer>
-          <feGaussianBlur stdDeviation="4.45795 4.45682" />
-        </filter>
-        <filter id="fx1" x="-10%" y="-10%" width="120%" height="120%" filterUnits="userSpaceOnUse"
-          primitiveUnits="userSpaceOnUse">
-          <feComponentTransfer color-interpolation-filters="sRGB">
-            <feFuncR type="discrete" tableValues="0 0" />
-            <feFuncG type="discrete" tableValues="0 0" />
-            <feFuncB type="discrete" tableValues="0 0" />
-            <feFuncA type="linear" slope="0.14902" intercept="0" />
-          </feComponentTransfer>
-          <feGaussianBlur stdDeviation="4.45795 4.45682" />
-        </filter>
-        <filter id="fx2" x="-10%" y="-10%" width="120%" height="120%" filterUnits="userSpaceOnUse"
-          primitiveUnits="userSpaceOnUse">
-          <feComponentTransfer color-interpolation-filters="sRGB">
-            <feFuncR type="discrete" tableValues="0 0" />
-            <feFuncG type="discrete" tableValues="0 0" />
-            <feFuncB type="discrete" tableValues="0 0" />
-            <feFuncA type="linear" slope="0.14902" intercept="0" />
-          </feComponentTransfer>
-          <feGaussianBlur stdDeviation="4.45795 4.45682" />
-        </filter>
-        <clipPath id="clip3">
-          <rect x="0" y="0" width="165" height="180" />
-        </clipPath>
-        <linearGradient x1="497.399" y1="35.8988" x2="785.601" y2="324.101" gradientUnits="userSpaceOnUse"
-          spreadMethod="reflect" id="fill4">
-          <stop offset="0" stop-color="#FFFFFF" />
-          <stop offset="0.0833333" stop-color="#FEFEFE" />
-          <stop offset="0.166667" stop-color="#FEFEFE" />
-          <stop offset="0.25" stop-color="#FEFEFE" />
-          <stop offset="0.333333" stop-color="#FDFDFD" />
-          <stop offset="0.416667" stop-color="#FCFCFC" />
-          <stop offset="0.5" stop-color="#FBFBFB" />
-          <stop offset="0.583333" stop-color="#FAFAFA" />
-          <stop offset="0.666667" stop-color="#F8F8F8" />
-          <stop offset="0.75" stop-color="#F7F7F7" />
-          <stop offset="0.833333" stop-color="#F5F5F5" />
-          <stop offset="0.916667" stop-color="#F3F3F3" />
-          <stop offset="1" stop-color="#F2F2F2" />
-        </linearGradient>
-        <clipPath id="clip5">
-          <rect x="0" y="0" width="165" height="180" />
-        </clipPath>
-        <linearGradient x1="316.399" y1="348.899" x2="604.601" y2="637.101" gradientUnits="userSpaceOnUse"
-          spreadMethod="reflect" id="fill6">
-          <stop offset="0" stop-color="#FFFFFF" />
-          <stop offset="0.0833333" stop-color="#FEFEFE" />
-          <stop offset="0.166667" stop-color="#FEFEFE" />
-          <stop offset="0.25" stop-color="#FEFEFE" />
-          <stop offset="0.333333" stop-color="#FDFDFD" />
-          <stop offset="0.416667" stop-color="#FCFCFC" />
-          <stop offset="0.5" stop-color="#FBFBFB" />
-          <stop offset="0.583333" stop-color="#FAFAFA" />
-          <stop offset="0.666667" stop-color="#F8F8F8" />
-          <stop offset="0.75" stop-color="#F7F7F7" />
-          <stop offset="0.833333" stop-color="#F5F5F5" />
-          <stop offset="0.916667" stop-color="#F3F3F3" />
-          <stop offset="1" stop-color="#F2F2F2" />
-        </linearGradient>
-        <clipPath id="clip7">
-          <rect x="0" y="0" width="165" height="180" />
-        </clipPath>
-        <linearGradient x1="675.399" y1="354.899" x2="963.601" y2="643.101" gradientUnits="userSpaceOnUse"
-          spreadMethod="reflect" id="fill8">
-          <stop offset="0" stop-color="#FFFFFF" />
-          <stop offset="0.0833333" stop-color="#FEFEFE" />
-          <stop offset="0.166667" stop-color="#FEFEFE" />
-          <stop offset="0.25" stop-color="#FEFEFE" />
-          <stop offset="0.333333" stop-color="#FDFDFD" />
-          <stop offset="0.416667" stop-color="#FCFCFC" />
-          <stop offset="0.5" stop-color="#FBFBFB" />
-          <stop offset="0.583333" stop-color="#FAFAFA" />
-          <stop offset="0.666667" stop-color="#F8F8F8" />
-          <stop offset="0.75" stop-color="#F7F7F7" />
-          <stop offset="0.833333" stop-color="#F5F5F5" />
-          <stop offset="0.916667" stop-color="#F3F3F3" />
-          <stop offset="1" stop-color="#F2F2F2" />
-        </linearGradient>
-      </defs>
-      <g>
-        <rect x="0" y="0" width="1280" height="720" fill="#FFFFFF" />
-        <path d="M409.5 551.5 646.5 142.5 883.5 551.5Z" stroke="#A6A6A6" stroke-miterlimit="8" fill="none"
-          fill-rule="evenodd" />
-        <path
-          d="M806.403 128.959 810.73 132.077 809.95 133.159 805.624 130.041ZM813.975 134.416 818.302 137.534 817.522 138.616 813.195 135.498ZM821.549 139.936 825.682 143.307 824.839 144.34 820.706 140.969ZM828.782 145.835 832.915 149.206 832.072 150.239 827.939 146.868ZM835.98 151.834 839.905 155.445 839.003 156.426 835.078 152.815ZM842.849 158.153 846.774 161.764 845.872 162.745 841.947 159.134ZM849.643 164.605 853.347 168.442 852.388 169.368 848.684 165.531ZM856.125 171.321 859.829 175.158 858.869 176.084 855.166 172.246ZM862.487 178.198 865.957 182.249 864.944 183.116 861.475 179.066ZM868.559 185.287 871.941 189.235 872.046 189.374 870.984 190.18 870.891 190.057 870.916 190.088 867.546 186.154ZM874.463 192.561 877.686 196.811 876.623 197.616 873.401 193.367ZM880.103 199.998 882.758 203.499 883.302 204.313 882.193 205.054 881.66 204.256 881.683 204.288 879.04 200.803ZM885.525 207.639 888.488 212.073 887.38 212.814 884.416 208.379ZM890.711 215.398 892.724 218.411 893.608 219.921 892.457 220.594 891.583 219.101 891.605 219.135 889.602 216.139ZM895.628 223.374 898.32 227.978 897.169 228.651 894.477 224.047ZM900.34 231.43 901.805 233.934 902.922 236.14 901.733 236.742 900.624 234.555 900.644 234.59 899.189 232.103ZM904.73 239.708 907.141 244.465 905.952 245.068 903.541 240.31ZM908.949 248.033 909.962 250.032 911.206 252.907 909.983 253.437 908.747 250.58 908.764 250.617 907.76 248.636ZM912.795 256.578 914.913 261.473 913.689 262.003 911.571 257.108ZM916.502 265.144 917.161 266.668 918.425 270.16 917.171 270.614 915.914 267.141 915.929 267.179 915.278 265.674ZM919.786 273.921 921.602 278.936 920.348 279.39 918.533 274.375ZM922.963 282.697 923.364 283.804 924.547 287.831 923.268 288.207 922.09 284.199 922.103 284.238 921.709 283.151ZM925.675 291.669 927.178 296.786 925.899 297.162 924.395 292.045ZM928.306 300.624 928.535 301.403 929.547 305.852 928.247 306.147 927.239 301.719 927.25 301.759 927.026 301ZM930.435 309.752 931.618 314.952 930.318 315.248 929.135 310.048ZM932.506 318.853 932.637 319.428 933.405 324.151 932.089 324.365 931.324 319.663 931.332 319.704 931.206 319.148ZM934.048 328.099 934.905 333.363 933.589 333.577 932.732 328.313ZM935.547 337.311 935.634 337.842 936.11 342.656 934.783 342.787 934.309 337.994 934.314 338.036 934.231 337.525ZM936.503 346.636 937.028 351.944 935.701 352.075 935.177 346.767ZM937.422 355.924 937.489 356.608 937.656 361.293 936.323 361.341 936.158 356.676 936.161 356.718 936.095 356.055ZM937.798 365.291 937.987 370.621 936.655 370.668 936.465 365.338ZM941.175 369.323 937.5 375.695 933.383 369.6C933.177 369.295 933.257 368.88 933.562 368.674 933.867 368.468 934.281 368.548 934.488 368.853L938.008 374.065 936.878 374.105 940.02 368.657C940.204 368.338 940.612 368.229 940.931 368.413 941.25 368.596 941.359 369.004 941.175 369.323ZM765.982 648.578 761.102 650.732 760.564 649.512 765.443 647.358ZM757.443 652.347 752.564 654.5 752.026 653.281 756.905 651.127ZM748.817 655.999 743.828 657.883 743.357 656.636 748.346 654.751ZM740.086 659.296 736.119 660.794 735.042 661.135 734.64 659.863 735.699 659.529 735.665 659.541 739.615 658.049ZM731.228 662.34 726.143 663.948 725.741 662.676 730.826 661.069ZM722.329 665.153 720.607 665.697 717.154 666.583 716.823 665.291 720.259 664.41 720.223 664.421 721.927 663.882ZM713.279 667.576 708.113 668.9 707.782 667.608 712.948 666.284ZM704.195 669.872 698.964 670.907 698.705 669.599 703.937 668.564ZM695.04 671.684 689.808 672.72 689.549 671.412 694.781 670.376ZM685.822 673.351 680.541 674.094 680.355 672.774 685.636 672.031ZM676.579 674.651 672.076 675.284 671.256 675.353 671.144 674.024 671.946 673.957 671.909 673.961 676.394 673.331ZM667.27 675.688 661.955 676.134 661.844 674.806 667.158 674.359ZM657.969 676.469 655.313 676.692 652.609 676.768 652.572 675.435 655.257 675.36 655.22 675.362 657.858 675.14ZM648.611 676.879 643.28 677.028 643.242 675.695 648.574 675.546ZM639.281 677.139 638.296 677.167 633.913 677.044 633.95 675.711 638.315 675.834 638.278 675.834 639.244 675.807ZM629.914 676.931 624.583 676.781 624.62 675.448 629.952 675.598ZM620.55 676.619 615.235 676.17 615.348 674.841 620.662 675.291ZM611.25 675.833 605.935 675.384 606.048 674.055 611.362 674.505ZM601.93 674.885 596.649 674.14 596.836 672.82 602.117 673.565ZM592.688 673.58 588.338 672.966 587.38 672.776 587.64 671.468 588.58 671.655 588.543 671.648 592.875 672.26ZM583.456 671.997 578.225 670.958 578.485 669.651 583.716 670.689ZM574.302 670.18 572.202 669.763 569.074 668.959 569.406 667.668 572.515 668.467 572.479 668.458 574.561 668.872ZM565.2 667.964 560.034 666.638 560.366 665.346 565.531 666.673ZM556.128 665.62 551.043 664.012 551.445 662.74 556.53 664.349ZM547.229 662.805 542.145 661.196 542.547 659.925 547.632 661.534ZM538.345 659.838 533.355 657.953 533.827 656.706 538.816 658.591ZM529.614 656.54 525.742 655.077 524.616 654.58 525.154 653.36 526.264 653.85 526.231 653.837 530.085 655.293ZM520.956 652.965 516.077 650.811 516.616 649.591 521.495 651.745ZM512.418 649.196 512.165 649.084 512.703 647.864 512.956 647.976ZM515.416 654.052 511.284 647.966 518.565 646.919C518.929 646.866 519.267 647.119 519.319 647.484 519.372 647.848 519.119 648.186 518.754 648.238L512.529 649.134 512.986 648.1 516.519 653.303C516.726 653.607 516.646 654.022 516.342 654.229 516.037 654.436 515.623 654.356 515.416 654.052ZM338.834 375.667 339.023 370.337 340.356 370.384 340.166 375.714ZM339.165 366.34 339.354 361.01 340.687 361.057 340.498 366.387ZM339.496 357.012 339.511 356.608 340 351.661 341.326 351.792 340.84 356.718 340.842 356.676 340.829 357.06ZM340.393 347.681 340.918 342.373 342.244 342.504 341.72 347.812ZM341.311 338.393 341.365 337.842 342.14 333.083 343.456 333.297 342.685 338.036 342.69 337.994 342.638 338.524ZM342.782 329.135 343.638 323.87 344.954 324.084 344.098 329.349ZM344.28 319.922 344.361 319.428 345.441 314.675 346.742 314.971 345.665 319.704 345.673 319.663 345.596 320.136ZM346.328 310.775 347.511 305.574 348.811 305.87 347.628 311.07ZM348.398 301.674 348.459 301.403 349.894 296.512 351.174 296.888 349.744 301.759 349.755 301.719 349.698 301.969ZM351.021 292.674 352.523 287.557 353.802 287.932 352.3 293.05ZM353.668 283.682 355.481 278.666 356.735 279.119 354.922 284.135ZM356.841 274.904 358.654 269.888 359.908 270.342 358.095 275.357ZM360.062 266.102 362.177 261.206 363.401 261.735 361.286 266.631ZM363.763 257.534 365.878 252.638 367.102 253.167 364.987 258.063ZM367.546 248.96 369.953 244.2 371.143 244.802 368.736 249.561ZM371.758 240.631 374.165 235.871 375.355 236.473 372.948 241.233ZM376.087 232.32 378.775 227.713 379.926 228.385 377.238 232.992ZM380.791 224.259 383.479 219.652 384.63 220.324 381.942 224.931ZM385.647 216.245 388.605 211.808 389.714 212.547 386.756 216.985ZM390.823 208.479 393.781 204.041 394.891 204.781 391.933 209.219ZM396.186 200.797 399.402 196.542 400.466 197.346 397.25 201.601ZM401.815 193.352 404.926 189.236 405.065 189.074 406.079 189.939 405.953 190.087 405.978 190.056 402.878 194.156ZM407.662 186.031 411.125 181.975 412.139 182.841 408.676 186.897ZM413.722 178.933 416.516 175.659 417.257 174.889 418.218 175.813 417.491 176.569 417.518 176.539 414.736 179.798ZM420.029 172.005 423.726 168.161 424.687 169.085 420.99 172.93ZM426.498 165.278 428.876 162.804 430.303 161.487 431.207 162.466 429.796 163.77 429.824 163.743 427.459 166.202ZM433.241 158.773 437.158 155.154 438.063 156.133 434.145 159.752ZM440.097 152.439 441.969 150.71 444.153 148.92 444.998 149.951 442.829 151.728 442.859 151.702 441.001 153.419ZM447.247 146.385 451.373 143.005 452.218 144.036 448.092 147.416ZM454.467 140.47 455.758 139.412 458.758 137.239 459.54 138.319 456.556 140.48 456.587 140.456 455.312 141.501ZM461.997 134.893 466.317 131.764 467.099 132.844 462.779 135.973ZM463.245 129.999 470.583 129.497 467.818 136.314C467.68 136.655 467.291 136.819 466.95 136.681 466.609 136.543 466.444 136.154 466.583 135.813L468.947 129.985 469.61 130.9 463.335 131.329C462.968 131.354 462.65 131.077 462.625 130.709 462.6 130.342 462.877 130.024 463.245 129.999Z"
-          fill="#0177E8" />
-        <g filter="url(#fx0)" transform="matrix(1.99394 0 0 1.99444 485 9)">
-          <g clip-path="url(#clip3)">
-            <path
-              d="M143.001 134.112C147.598 131.509 151.201 125.189 151.201 119.984 151.201 60.0014 151.201 60.0014 151.201 60.0014 151.201 54.7963 147.598 48.3519 143.001 45.7494 90.9434 15.8821 90.9434 15.8821 90.9434 15.8821 86.4706 13.2795 79.0161 13.2795 74.5434 15.8821 22.4859 45.7494 22.4859 45.7494 22.4859 45.7494 18.0132 48.3519 14.2859 54.7963 14.2859 60.0014 14.2859 119.984 14.2859 119.984 14.2859 119.984 14.2859 125.189 18.0132 131.509 22.4859 134.112 74.5434 164.103 74.5434 164.103 74.5434 164.103 79.0161 166.706 86.4706 166.706 90.9434 164.103L143.001 134.112Z"
-              fill="#FF0000" fill-rule="evenodd" />
-          </g>
-        </g>
-        <path
-          d="M761.65 267.994C770.816 262.803 778 250.197 778 239.816 778 120.184 778 120.184 778 120.184 778 109.803 770.816 96.9499 761.65 91.7593 657.85 32.1906 657.85 32.1906 657.85 32.1906 648.932 27 634.068 27 625.15 32.1906 521.35 91.7593 521.35 91.7593 521.35 91.7593 512.432 96.9499 505 109.803 505 120.184 505 239.816 505 239.816 505 239.816 505 250.197 512.432 262.803 521.35 267.994 625.15 327.809 625.15 327.809 625.15 327.809 634.068 333 648.932 333 657.85 327.809L761.65 267.994Z"
-          fill="url(#fill4)" fill-rule="evenodd" class="clickable" @click="navigateTo('/analyse/Platform')" />
+﻿<template>
+  <div class="about-page">
+    <section
+      class="hero-section"
+      :style="{ '--hero-bg-image': `url(${heroBanner})` }"
+    >
+      <div class="hero-backdrop"></div>
+      <div class="hero-glow hero-glow-left"></div>
+      <div class="hero-glow hero-glow-right"></div>
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <span class="eyebrow">Plant regeneration spatial atlas</span>
+          <h1>Plant Single Cell Spatial Atlas</h1>
+          <p class="hero-description">
+            A multimodal spatiotemporal atlas that tracks tomato de novo
+            regeneration from wounding to shoot organogenesis with
+            super-resolution spatial transcriptomics.
+          </p>
 
-        <g class="clickable" @click="navigateTo('/analyse/Platform')">
-          <text font-family="Arial,Arial_MSFontService,sans-serif" font-weight="400" font-size="24"
-            transform="translate(536.851 175)">Demonstration data</text>
-          <text font-family="Arial,Arial_MSFontService,sans-serif" font-weight="400" font-size="24"
-            transform="translate(601.518 203)">analysis</text>
-        </g>
+          <div class="hero-actions">
+            <button class="action-btn action-btn-primary" @click="navigateTo('/analyse/Platform')">
+              Explore Atlas
+            </button>
+            <button class="action-btn action-btn-secondary" @click="navigateTo('/analyse/UploadData')">
+              Upload Data
+            </button>
+          </div>
 
-        <g filter="url(#fx1)" transform="matrix(1.99394 0 0 1.99444 304 322)">
-          <g clip-path="url(#clip5)">
-            <path
-              d="M143.001 134.112C147.598 131.509 151.201 125.189 151.201 119.984 151.201 60.0014 151.201 60.0014 151.201 60.0014 151.201 54.7963 147.598 48.3519 143.001 45.7494 90.9434 15.8821 90.9434 15.8821 90.9434 15.8821 86.4706 13.2796 79.0161 13.2796 74.5434 15.8821 22.4859 45.7494 22.4859 45.7494 22.4859 45.7494 18.0132 48.3519 14.2859 54.7963 14.2859 60.0014 14.2859 119.984 14.2859 119.984 14.2859 119.984 14.2859 125.189 18.0132 131.509 22.4859 134.112 74.5434 164.103 74.5434 164.103 74.5434 164.103 79.0161 166.706 86.4706 166.706 90.9434 164.103L143.001 134.112Z"
-              fill="#FF0000" fill-rule="evenodd" />
-          </g>
-        </g>
-        <path
-          d="M580.65 580.994C589.816 575.803 597 563.197 597 552.816 597 433.184 597 433.184 597 433.184 597 422.803 589.816 409.95 580.65 404.759 476.85 345.191 476.85 345.191 476.85 345.191 467.932 340 453.068 340 444.15 345.191 340.35 404.759 340.35 404.759 340.35 404.759 331.432 409.95 324 422.803 324 433.184 324 552.816 324 552.816 324 552.816 324 563.197 331.432 575.803 340.35 580.994 444.15 640.809 444.15 640.809 444.15 640.809 453.068 646 467.932 646 476.85 640.809L580.65 580.994Z"
-          fill="url(#fill6)" fill-rule="evenodd" class="clickable" @click="navigateTo('/custom-data')" />
 
-        <g class="clickable" @click="navigateTo('/analyse/UploadData')">
-          <text font-family="Arial,Arial_MSFontService,sans-serif" font-weight="400" font-size="24"
-            transform="translate(392.173 487)">Custom data</text>
-          <text font-family="Arial,Arial_MSFontService,sans-serif" font-weight="400" font-size="24"
-            transform="translate(420.173 515)">analysis</text>
-        </g>
+          <div class="stats-grid">
+            <article v-for="item in stats" :key="item.label" class="stat-card">
+              <strong>{{ item.value }}</strong>
+              <span>{{ item.label }}</span>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
 
-        <g filter="url(#fx2)" transform="matrix(1.99394 0 0 1.99444 663 328)">
-          <g clip-path="url(#clip7)" transform="matrix(1 0 0 1 0 -2.84217e-14)">
-            <path
-              d="M143.001 134.112C147.598 131.509 151.201 125.189 151.201 119.984 151.201 60.0014 151.201 60.0014 151.201 60.0014 151.201 54.7963 147.598 48.3519 143.001 45.7494 90.9434 15.8821 90.9434 15.8821 90.9434 15.8821 86.4706 13.2795 79.0161 13.2795 74.5434 15.8821 22.4859 45.7494 22.4859 45.7494 22.4859 45.7494 18.0132 48.3519 14.2859 54.7963 14.2859 60.0014 14.2859 119.984 14.2859 119.984 14.2859 119.984 14.2859 125.189 18.0132 131.509 22.4859 134.112 74.5434 164.103 74.5434 164.103 74.5434 164.103 79.0161 166.706 86.4706 166.706 90.9434 164.103L143.001 134.112Z"
-              fill="#FF0000" fill-rule="evenodd" />
-          </g>
-        </g>
-        <path
-          d="M939.65 586.994C948.816 581.803 956 569.197 956 558.816 956 439.184 956 439.184 956 439.184 956 428.803 948.816 415.95 939.65 410.759 835.85 351.191 835.85 351.191 835.85 351.191 826.932 346 812.068 346 803.15 351.191 699.35 410.759 699.35 410.759 699.35 410.759 690.432 415.95 683 428.803 683 439.184 683 558.816 683 558.816 683 558.816 683 569.197 690.432 581.803 699.35 586.994 803.15 646.809 803.15 646.809 803.15 646.809 812.068 652 826.932 652 835.85 646.809L939.65 586.994Z"
-          fill="url(#fill8)" fill-rule="evenodd" class="clickable"
-          @click="openExternalLink('https://bbs.single-cell-spatial.com/')" />
+    <section class="section-block overview-section">
+      <div class="container section-grid section-grid-wide">
+        <div class="section-copy">
+          <span class="section-kicker">Abstract</span>
+          <h2>From wound response to an ovoid-structured stem-cell niche</h2>
+          <p>
+            Plant de novo regeneration depends on callus formation and
+            re-establishment of stem-cell niches rather than pre-existing stem-cell
+            reservoirs. Using enhanced tissue fixation and multimodal spatial
+            transcriptomics, the atlas resolves regeneration across about 1.16
+            million cells.
+          </p>
+          <p>
+            The study identifies a previously unrecognized regenerative niche made
+            of a signaling layer, a plastic compartment and a quiescent core,
+            revealing structural organization as a key principle in plant
+            regeneration biology.
+          </p>
+          <div class="highlight-panel">
+            <div>
+              <span class="highlight-label">Key advance</span>
+              <p>
+                Super-resolution spatial multi-omics links histology, expression
+                dynamics and niche architecture in one unified portal.
+              </p>
+            </div>
+          </div>
+        </div>
 
-        <g class="clickable" @click="openExternalLink('https://bbs.single-cell-spatial.com/')">
-          <text font-family="Arial,Arial_MSFontService,sans-serif" font-weight="400" font-size="24"
-            transform="translate(709.227 493)">Spatial transcriptome</text>
-          <text font-family="Arial,Arial_MSFontService,sans-serif" font-weight="400" font-size="24"
-            transform="translate(700.56 521)">Communication Forum</text>
-        </g>
-      </g>
-    </svg>
+        <div class="image-frame image-frame-light">
+          <img :src="overviewFigure" alt="Overview of plant regeneration atlas" />
+        </div>
+      </div>
+    </section>
+
+    <section class="section-block storyline-section">
+      <div class="container">
+        <div class="section-heading centered">
+          <span class="section-kicker">Atlas storyline</span>
+          <h2>Four regenerative phases resolved across time and scale</h2>
+          <p>
+            The reference figure captures temporal transitions from pluripotency
+            initiation to shoot regeneration, while preserving spatial cell-state
+            organization across the full regeneration window.
+          </p>
+        </div>
+
+        <div class="image-frame story-frame">
+          <img :src="storyFigure" alt="Transverse section regeneration phases" />
+        </div>
+
+        <div class="phase-grid">
+          <article v-for="phase in phases" :key="phase.title" class="phase-card">
+            <span class="phase-time">{{ phase.time }}</span>
+            <h3>{{ phase.title }}</h3>
+            <p>{{ phase.description }}</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-block mechanism-section">
+      <div class="container mechanism-shell">
+        <div class="mechanism-header">
+          <span class="section-kicker">Mechanistic model</span>
+          <h2>EPFL8b-mediated signaling organizes the regenerative niche</h2>
+        </div>
+
+        <div class="section-copy mechanism-copy">
+          <p>
+            The model highlights how the signaling layer, plastic compartment and
+            quiescent core cooperate to support proper shoot regeneration, and how
+            disorganization of this architecture impairs regenerative output.
+          </p>
+          <div class="mechanism-note">
+            <strong>Model insight</strong>
+            <span>
+              Organized SCN architecture supports proper regeneration, while
+              disrupted spatial order leads to impaired developmental output.
+            </span>
+          </div>
+        </div>
+
+        <div class="mechanism-media">
+          <div class="image-frame image-frame-light mechanism-frame">
+            <img :src="mechanismFigure" alt="Ovoid structured SCN model" />
+          </div>
+          <div class="mechanism-caption">
+            <span>Wild type vs mutant</span>
+            <p>
+              The illustration contrasts an organized ovoid SCN with a
+              disorganized mutant niche state.
+            </p>
+          </div>
+        </div>
+
+        <div class="mini-cards mechanism-cards">
+          <article class="mini-card" v-for="layer in nicheLayers" :key="layer.title">
+            <strong>{{ layer.title }}</strong>
+            <p>{{ layer.description }}</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-block modules-section">
+      <div class="container">
+        <div class="section-heading centered">
+          <span class="section-kicker">Portal modules</span>
+          <h2>Two direct entrances for atlas browsing and custom workflows</h2>
+        </div>
+
+        <div class="module-grid module-grid-single">
+          <article class="module-card module-card-single">
+            <div class="module-image-wrap">
+              <img :src="clusterFigure" alt="Integrated cellular atlas map" />
+            </div>
+            <div class="module-body">
+              <span class="module-tag">Built-in atlas</span>
+              <h3>Integrated atlas overview</h3>
+              <p>
+                Browse the multimodal reference atlas and inspect cell classes,
+                spatial layers and cross-method views from a single entry point.
+              </p>
+              <button class="action-btn action-btn-ghost action-btn-inline" @click="navigateTo('/analyse/Platform')">
+                Start Analysis
+              </button>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+
+    <section class="section-block references-section">
+      <div class="container">
+        <div class="references-card">
+          <div class="references-copy">
+            <h3>References</h3>
+            <p>
+              We curated {{ referenceCount }} literature records in the current
+              manuscript resource, covering plant regeneration, spatial
+              transcriptomics and related signaling mechanisms that support this
+              atlas.
+            </p>
+          </div>
+          <button
+            class="references-btn"
+            @click="navigateTo('/references')"
+          >
+            View full reference list
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact-section">
+      <div class="container contact-shell">
+        <div class="contact-badge">P</div>
+        <h3>Plant Single Cell Spatial Atlas</h3>
+        <p class="contact-subtitle">
+          A spatiotemporal single-cell atlas for tomato regeneration and plant
+          spatial transcriptomics.
+        </p>
+
+        <div class="contact-meta">
+          <div class="contact-item">
+            <span>Website</span>
+            <a :href="datasetUrl" target="_blank" rel="noopener noreferrer">
+              {{ datasetUrl }}
+            </a>
+          </div>
+          <div class="contact-item">
+            <span>Contact</span>
+            <a :href="`mailto:${contactEmail}`">{{ contactEmail }}</a>
+          </div>
+        </div>
+
+        <div class="contact-footer">
+          Copyright © 2026 All rights reserved | Best viewed with modern
+          Chromium-based browsers
+        </div>
+      </div>
+    </section>
+
+    <el-backtop :right="28" :bottom="28">
+      <div class="backtop-btn">↑</div>
+    </el-backtop>
   </div>
 </template>
 
 <script>
+import heroBanner from "../assets/about/fig1-banner.webp";
+import overviewFigure from "../assets/about/fig1-overview.webp";
+import storyFigure from "../assets/about/fig1-story.webp";
+import mechanismFigure from "../assets/about/fig7-model.webp";
+import clusterFigure from "../assets/about/default-cluster.webp";
+
 export default {
-  name: 'About',
+  name: "About",
+  data() {
+    return {
+      datasetUrl: "http://www.single-cell-spatial.com",
+      contactEmail: "bosheng.li@pku-iaas.edu.cn",
+      referenceCount: 101,
+      heroBanner,
+      overviewFigure,
+      storyFigure,
+      mechanismFigure,
+      clusterFigure,
+      heroTags: ["1.16M cells", "101 spatial maps", "50 Xenium genes"],
+      stats: [
+        { value: "1.16M", label: "Profiled cells" },
+        { value: "101", label: "Spatial maps" },
+        { value: "50", label: "Targeted Xenium genes" },
+        { value: "0–16 DPE", label: "Regeneration window" },
+      ],
+      phases: [
+        {
+          time: "0–2 DPE",
+          title: "Wound response & pluripotency initiation",
+          description:
+            "Early injury cues trigger broad cellular plasticity and prime the explant for regeneration.",
+        },
+        {
+          time: "2–8 DPE",
+          title: "Stem-cell establishment",
+          description:
+            "Spatial programs consolidate into a stem-cell niche precursor with increasingly ordered identity.",
+        },
+        {
+          time: "8–12 DPE",
+          title: "SCN formation",
+          description:
+            "The niche gains recognizable architecture and separates signaling, plastic and inner domains.",
+        },
+        {
+          time: "12–16 DPE",
+          title: "Shoot regeneration",
+          description:
+            "Organized niche structure supports coordinated outgrowth and successful shoot formation.",
+        },
+      ],
+      nicheLayers: [
+        {
+          title: "Signaling layer",
+          description: "EPFL8b/CUC2-associated outer layer coordinating positional communication.",
+        },
+        {
+          title: "Plastic compartment",
+          description: "PLT3a/STM-enriched cells preserving regenerative competence.",
+        },
+        {
+          title: "Quiescent core",
+          description: "WUS/CLV3/RAD17-associated core linked to organized stem-cell behavior.",
+        },
+      ],
+    };
+  },
   methods: {
     navigateTo(route) {
       this.$router.push(route);
     },
-    openExternalLink(url) {
-      window.open(url, '_blank');
-    }
-  }
-}
+  },
+};
 </script>
 
 <style scoped>
-.content {
+.about-page {
+  min-height: calc(100vh - 60px);
+  background: #f7f8fb;
+  color: #14261b;
+}
+
+.about-page,
+.about-page * {
+  box-sizing: border-box;
+}
+
+.container {
+  width: min(1240px, calc(100% - 32px));
+  margin: 0 auto;
+}
+
+.hero-section {
+  position: relative;
+  overflow: hidden;
+  padding: 88px 0 64px;
+  background-image:
+    linear-gradient(110deg, rgba(6, 22, 11, 0.9) 0%, rgba(6, 20, 11, 0.8) 34%, rgba(5, 16, 28, 0.76) 100%),
+    var(--hero-bg-image);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  color: #f6fff4;
+}
+
+.hero-backdrop,
+.hero-glow {
+  position: absolute;
+  pointer-events: none;
+}
+
+.hero-backdrop {
+  inset: 0;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(145, 220, 111, 0.24), transparent 24%),
+    radial-gradient(circle at 85% 14%, rgba(85, 164, 255, 0.2), transparent 22%),
+    linear-gradient(115deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.4));
+}
+
+.hero-glow {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.45;
+}
+
+.hero-glow-left {
+  background: rgba(122, 219, 81, 0.34);
+  left: -80px;
+  top: -100px;
+}
+
+.hero-glow-right {
+  background: rgba(121, 121, 255, 0.24);
+  right: -70px;
+  top: 30px;
+}
+
+.hero-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 760px);
+  gap: 36px;
+  align-items: center;
+  min-height: 520px;
+}
+
+.eyebrow,
+.section-kicker,
+.note-label,
+.module-tag,
+.highlight-label,
+.phase-time,
+.citation-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.eyebrow,
+.section-kicker,
+.note-label,
+.highlight-label,
+.phase-time,
+.module-tag {
+  color: #8fd38a;
+}
+
+.hero-copy h1 {
+  margin: 16px 0 18px;
+  font-size: clamp(2.5rem, 4vw, 4.4rem);
+  line-height: 1.06;
+}
+
+.hero-description {
+  max-width: 620px;
+  margin: 0;
+  color: rgba(246, 255, 244, 0.82);
+  font-size: 1.08rem;
+  line-height: 1.8;
+}
+
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 32px;
+}
+
+
+
+.action-btn {
+  border: 1px solid transparent;
+  border-radius: 14px;
+  padding: 14px 24px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  border-color: transparent;
+}
+
+.action-btn-primary {
+  background: linear-gradient(135deg, #8bd85c, #57b643);
+  color: #0d2009;
+  box-shadow: 0 18px 30px rgba(87, 182, 67, 0.26);
+}
+
+.action-btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: #efffed;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.action-btn-ghost {
+  background: #eef8ea;
+  color: #2f6d2d;
+  border: 1px solid rgba(95, 184, 77, 0.24);
+  box-shadow: 0 12px 24px rgba(95, 184, 77, 0.12);
+}
+
+.action-btn-ghost:hover {
+  background: #e2f4db;
+}
+
+.action-btn-inline {
+  width: fit-content;
+  margin-top: 8px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 34px;
+}
+
+.stat-card,
+.phase-card,
+.mini-card,
+.module-card,
+.citation-card,
+.highlight-panel {
+  backdrop-filter: blur(12px);
+}
+
+.stat-card {
+  padding: 18px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.stat-card strong {
+  display: block;
+  font-size: 1.45rem;
+  color: #fff;
+}
+
+.stat-card span {
+  display: block;
+  margin-top: 8px;
+  color: rgba(245, 255, 244, 0.7);
+  line-height: 1.45;
+}
+
+.image-frame img,
+.module-image-wrap img {
+  display: block;
   width: 100%;
+  height: auto;
+}
+
+.section-block {
+  padding: 84px 0;
+}
+
+.overview-section {
+  background: linear-gradient(180deg, #f8fbf7 0%, #ffffff 100%);
+}
+
+.section-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.92fr);
+  gap: 36px;
+  align-items: center;
+}
+
+.section-grid-wide {
+  grid-template-columns: minmax(320px, 1.05fr) minmax(0, 1fr);
+}
+
+.section-copy,
+.module-body,
+.citation-card {
+  text-align: left;
+}
+
+.section-copy h2,
+.section-heading h2 {
+  margin: 16px 0 18px;
+  color: #132416;
+  font-size: clamp(2rem, 3vw, 3rem);
+  line-height: 1.16;
+}
+
+.section-copy p {
+  margin: 0 0 16px;
+}
+
+.section-copy p,
+.section-heading p,
+.phase-card p,
+.mini-card p,
+.module-body p,
+.citation-card p,
+.highlight-panel p {
+  color: #526257;
+  font-size: 1rem;
+  line-height: 1.85;
+}
+
+.highlight-panel {
+  margin-top: 26px;
+  padding: 20px 22px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, rgba(143, 211, 138, 0.18), rgba(118, 170, 255, 0.08));
+  border: 1px solid rgba(112, 177, 108, 0.18);
+}
+
+.highlight-panel p {
+  margin: 10px 0 0;
+}
+
+.image-frame {
+  overflow: hidden;
+  border-radius: 30px;
+  box-shadow: 0 24px 56px rgba(18, 35, 22, 0.12);
+}
+
+.image-frame-light {
+  background: #fff;
+  border: 1px solid rgba(18, 35, 22, 0.08);
+}
+
+.storyline-section {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(238, 244, 239, 0.86));
+}
+
+.mechanism-section {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(144, 214, 132, 0.12), transparent 28%),
+    radial-gradient(circle at 88% 28%, rgba(128, 168, 255, 0.1), transparent 24%),
+    linear-gradient(180deg, #f8faf7 0%, #f4f7fb 100%);
+}
+
+.mechanism-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.92fr);
+  gap: 40px;
+  align-items: center;
+}
+
+.mechanism-header {
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: 760px;
+}
+
+.mechanism-header h2 {
+  margin: 16px 0 0;
+  color: #132416;
+  font-size: clamp(2.25rem, 3.6vw, 4rem);
+  line-height: 1.12;
+}
+
+.mechanism-note {
+  display: grid;
+  gap: 6px;
+  margin-top: 22px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(95, 184, 77, 0.12);
+  box-shadow: 0 12px 32px rgba(30, 53, 34, 0.06);
+}
+
+.mechanism-note strong,
+.mechanism-caption span {
+  color: #2f6d2d;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.mechanism-note span,
+.mechanism-caption p {
+  color: #55655a;
+  line-height: 1.8;
+}
+
+.section-heading {
+  max-width: 860px;
+  margin-bottom: 34px;
+}
+
+.section-heading p {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.centered {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.story-frame {
+  margin-bottom: 26px;
+}
+
+.phase-grid,
+.mini-cards,
+.module-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.phase-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.phase-card,
+.mini-card,
+.module-card,
+.citation-card {
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(18, 35, 22, 0.08);
+  box-shadow: 0 16px 40px rgba(25, 44, 29, 0.08);
+}
+
+.phase-card {
+  padding: 24px;
+  text-align: left;
+}
+
+.phase-card h3,
+.module-body h3,
+.mini-card strong {
+  color: #15261a;
+}
+
+.phase-card h3,
+.module-body h3 {
+  margin: 16px 0 12px;
+  font-size: 1.16rem;
+}
+
+.mini-cards {
+  margin-top: 26px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.mechanism-cards {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin-top: 4px;
+  gap: 16px;
+}
+
+.mini-card {
+  padding: 18px 18px 16px;
+  text-align: left;
+}
+
+.mini-card strong {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.mini-card p {
+  margin: 0;
+  font-size: 0.96rem;
+  line-height: 1.72;
+}
+
+.mechanism-media {
+  display: grid;
+  gap: 14px;
+  align-content: center;
+}
+
+.mechanism-frame {
+  padding: 18px;
+  border-radius: 28px;
+  box-shadow: 0 24px 56px rgba(30, 53, 34, 0.1);
+}
+
+.mechanism-frame img {
+  border-radius: 18px;
+}
+
+.mechanism-caption {
+  padding: 0 8px;
+}
+
+.mechanism-caption p {
+  margin: 8px 0 0;
+}
+
+.modules-section {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(235, 243, 237, 0.78));
+}
+
+.module-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.module-grid-single {
+  grid-template-columns: minmax(0, 920px);
+  justify-content: center;
+}
+
+.module-card {
+  overflow: hidden;
+}
+
+.module-card-single {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+  align-items: stretch;
+}
+
+.module-image-wrap {
+  aspect-ratio: 16 / 10;
+  background: #091109;
+}
+
+.module-image-wrap img {
+  height: 100%;
+  object-fit: cover;
+}
+
+.module-card-single .module-image-wrap {
+  aspect-ratio: auto;
+  min-height: 320px;
+}
+
+.module-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.module-tag {
+  color: #5fb84d;
+}
+
+.citation-card {
+  padding: 30px 34px;
+}
+
+.citation-card p {
+  margin: 16px 0 24px;
+}
+
+.citation-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(19, 36, 22, 0.08);
+}
+
+.citation-meta span {
+  color: #6bb65d;
+}
+
+.citation-meta a,
+.citation-meta strong {
+  display: block;
+  margin-top: 8px;
+  color: #15261a;
+  text-decoration: none;
+  line-height: 1.7;
+}
+
+.references-section {
+  padding-top: 12px;
+}
+
+.references-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 22px;
+  padding: 34px 38px;
+  border-radius: 28px;
+  background: #ffffff;
+  border: 1px solid rgba(19, 36, 22, 0.08);
+  box-shadow: 0 16px 42px rgba(25, 44, 29, 0.08);
+}
+
+.references-copy h3 {
+  margin: 0 0 14px;
+  color: #8b1200;
+  font-size: 1.9rem;
+}
+
+.references-copy p {
+  margin: 0;
+  color: #4f5e54;
+  font-size: 1.04rem;
+  line-height: 1.85;
+}
+
+.references-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 220px;
+  padding: 16px 28px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff9e22, #ff8500);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 16px 28px rgba(255, 133, 0, 0.22);
+}
+
+.references-btn:hover {
+  transform: translateY(-2px);
+}
+
+.backtop-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #8bd85c, #4ca63c);
+  color: #0e2109;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ffffff;
+  font-size: 1.25rem;
+  font-weight: 800;
+  box-shadow: 0 16px 28px rgba(76, 166, 60, 0.24);
 }
 
-.clickable {
-  cursor: pointer;
-  transition: opacity 0.3s;
+.contact-section {
+  margin-top: 36px;
+  padding: 56px 0 28px;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(146, 216, 138, 0.14), transparent 28%),
+    linear-gradient(180deg, #081a0e 0%, #0d2415 100%);
+  color: #f2fff2;
 }
 
-.clickable:hover {
-  opacity: 0.8;
+.contact-shell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.contact-badge {
+  width: 66px;
+  height: 66px;
+  border-radius: 999px;
+  background: #eff9ef;
+  color: #204d27;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.contact-shell h3 {
+  margin: 18px 0 10px;
+  font-size: 2rem;
+  color: #fff;
+}
+
+.contact-subtitle {
+  margin: 0;
+  max-width: 760px;
+  color: rgba(242, 255, 242, 0.84);
+  font-size: 1.2rem;
+  line-height: 1.8;
+}
+
+.contact-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(260px, 1fr));
+  gap: 18px;
+  margin-top: 28px;
+  width: min(860px, 100%);
+}
+
+.contact-item {
+  padding: 20px 22px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.contact-item span {
+  display: block;
+  margin-bottom: 10px;
+  color: rgba(191, 238, 187, 0.82);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.contact-item a,
+.contact-item strong {
+  color: #fff;
+  line-height: 1.8;
+  word-break: break-word;
+}
+
+.contact-footer {
+  margin-top: 34px;
+  color: rgba(220, 241, 220, 0.76);
+  font-size: 0.98rem;
+}
+
+@media (max-width: 1120px) {
+  .hero-grid,
+  .section-grid,
+  .section-grid-wide {
+    grid-template-columns: 1fr;
+  }
+
+  .mechanism-shell {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .references-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .mechanism-header {
+    max-width: 100%;
+  }
+
+  .stats-grid,
+  .phase-grid,
+  .mini-cards,
+  .module-grid,
+  .citation-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 70px 0 48px;
+  }
+
+  .section-block {
+    padding: 64px 0;
+  }
+
+  .container {
+    width: min(1240px, calc(100% - 24px));
+  }
+
+  .stats-grid,
+  .phase-grid,
+  .mini-cards,
+  .module-grid,
+  .citation-meta,
+  .contact-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .module-card-single {
+    grid-template-columns: 1fr;
+  }
+
+  .module-card-single .module-image-wrap {
+    min-height: 220px;
+  }
+
+  .hero-copy h1 {
+    font-size: clamp(2.2rem, 10vw, 3.1rem);
+  }
+
+  .section-copy h2,
+  .section-heading h2 {
+    font-size: clamp(1.75rem, 8vw, 2.45rem);
+  }
+
+  .mechanism-header h2 {
+    font-size: clamp(1.95rem, 8.4vw, 3rem);
+  }
+
+  .phase-card,
+  .mini-card,
+  .module-body,
+  .citation-card,
+  .highlight-panel,
+  .references-card,
+  .contact-item {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
 }
 </style>

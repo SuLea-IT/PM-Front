@@ -36,7 +36,7 @@
         <label>{{ $t("pointSize") }}</label>
         <el-slider v-model="pointSize" :min="0.1" :max="2" :step="0.1" @input="onPointSizeChange"></el-slider>
       </div>
-      <div v-if="selectedMode === 'cluster'" class="control-item">
+      <div v-if="selectedMode === 'cluster' && selectedDataSource === 'umap'" class="control-item">
         <label>{{ $t("selectClusters") }}</label>
         <el-select
           v-model="selectedClusters"
@@ -49,14 +49,14 @@
           <el-option v-for="item in clusterOptions" :key="item.value" :label="item.label" :value="item.value"></el-option>
         </el-select>
       </div>
-      <div v-if="selectedMode === 'cluster'" class="control-item">
+      <div v-if="selectedMode === 'cluster' && selectedDataSource === 'umap'" class="control-item">
         <el-checkbox v-model="showClusterLabels" @change="onShowClusterLabelsChange">{{ $t("showClusterLabels") }}</el-checkbox>
       </div>
-      <div v-if="selectedMode === 'cluster'" class="control-item">
+      <div v-if="selectedMode === 'cluster'" class="control-item switch-control">
         <label>{{ $t("lowRender") }}</label>
         <el-switch v-model="lowRenderEnabled" @change="onLowRenderChange"></el-switch>
       </div>
-      <div v-if="selectedMode === 'cluster'" class="control-item">
+      <div v-if="selectedMode === 'cluster'" class="control-item switch-control">
         <label>{{ $t("stepReveal") }}</label>
         <el-switch v-model="stepRevealEnabled" @change="onStepRevealEnabledChange"></el-switch>
       </div>
@@ -117,7 +117,7 @@
       <div class="control-item" style="margin-top: 15px;">
         <el-checkbox v-model="showClusterBg" @change="onShowClusterBgChange">{{ $t("showClusterBackground") }}</el-checkbox>
       </div>
-      <div v-if="showClusterBg" class="control-item" style="padding-left: 20px;">
+      <div v-if="showClusterBg && selectedDataSource === 'umap'" class="control-item" style="padding-left: 20px;">
         <el-checkbox v-model="showClusterLabels" @change="onShowClusterLabelsChange">{{ $t("showClusterLabels") }}</el-checkbox>
       </div>
       <div class="control-item">
@@ -166,8 +166,8 @@ export default {
   },
   data() {
     return {
-      selectedDataSource: "umap",
-      selectedDataType: "spatial-RNA-seq",
+      selectedDataSource: "cluster",
+      selectedDataType: "",
       selectedMode: "cluster",
       pointSize: 1,
       lowRenderEnabled: true,
@@ -260,6 +260,10 @@ export default {
     },
     onDataSourceChange(value) {
       this.geneTags = [];
+      if (value !== 'umap' && this.showClusterLabels) {
+        this.showClusterLabels = false;
+        this.onShowClusterLabelsChange(false);
+      }
       if (value === 'singleCell' && this.selectedMode === 'gene') {
         this.selectedMode = 'cluster';
         this.onModeChange('cluster');
@@ -355,6 +359,12 @@ export default {
           this.onClusterChange(this.selectedClusters);
         }
       },
+      selectedDataSource(newVal) {
+        if (newVal !== 'umap' && this.showClusterLabels) {
+          this.showClusterLabels = false;
+          this.onShowClusterLabelsChange(false);
+        }
+      },
       selectedMode(newVal) {
         if (newVal === 'gene' && this.geneMode === 'single') {
           this.loadGeneTags();
@@ -388,6 +398,7 @@ export default {
   font-weight: 600;
   color: var(--el-control-panel-header-color, #303133);
   border-bottom: 1px solid var(--el-control-panel-border-color, #e4e7ed);
+  text-align: center;
 }
 
 .panel-section {
@@ -400,6 +411,7 @@ export default {
   font-weight: 600;
   margin-bottom: 15px;
   color: var(--el-control-panel-section-color, #606266);
+  text-align: center;
 }
 
 .control-item {
@@ -411,11 +423,33 @@ export default {
   margin-bottom: 8px;
   font-size: 14px;
   color: var(--el-control-panel-section-color, #606266);
+  text-align: center;
+}
+
+.switch-control {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.switch-control :deep(.el-switch) {
+  margin: 0 auto;
 }
 
 .control-item .el-select,
 .control-item .el-slider {
   width: 100%;
+}
+
+.control-item :deep(.el-checkbox) {
+  width: 100%;
+  justify-content: center;
+}
+
+.control-item :deep(.el-button) {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .gene-input-section {
