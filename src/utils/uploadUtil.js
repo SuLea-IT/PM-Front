@@ -1,19 +1,25 @@
-import { ElMessage } from "element-plus";
+﻿import { ElMessage } from "element-plus";
 import i18n from "../i18n/i18n";
 import axiosInstance from "./axiosInstance";
 
+const CHUNK_SIZE = 5 * 1024 * 1024;
+
 const translateServerMessage = (message) => {
   switch (message) {
+    case "Chunk uploaded successfully, waiting for the remaining chunks.":
+    case "Uploading":
     case "???":
       return i18n.global.t("uploadInProgress");
+    case "File merge completed and chunk directory was removed.":
+    case "All files uploaded successfully":
     case "????????":
-      return i18n.global.t("allFilesUploadedSuccessfully");
+      return i18n.global.t("fileUploadSuccess");
     case "??????":
       return i18n.global.t("fileAlreadyExists");
     default:
       if (
         i18n.global.locale.value === "en" &&
-        /[一-鿿]/.test(message || "")
+        /[\u4e00-\u9fa5]/.test(message || "")
       ) {
         return i18n.global.t("uploadFailedRetry");
       }
@@ -30,17 +36,13 @@ const uploadFileInChunks = async (
   fileNumber,
   fun
 ) => {
-  const chunkSize = 5 * 1024 * 1024;
-  const totalChunks = Math.ceil(file.size / chunkSize);
+  const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
   let progressNoticeCount = 0;
+  let lastResponse = null;
 
-  const uploadChunk = async (index) => {
-    if (index >= totalChunks) {
-      return;
-    }
-
-    const start = index * chunkSize;
-    const end = Math.min(file.size, start + chunkSize);
+  for (let index = 0; index < totalChunks; index += 1) {
+    const start = index * CHUNK_SIZE;
+    const end = Math.min(file.size, start + CHUNK_SIZE);
     const chunk = file.slice(start, end);
 
     const formData = new FormData();
@@ -58,58 +60,61 @@ const uploadFileInChunks = async (
 
     try {
       const response = await axiosInstance.post("/upload/upload", formData);
-      const translatedMessage = translateServerMessage(response.msg);
+      lastResponse = response;
 
-      if (response.code === 200) {
-        if (response.msg === "???") {
-          await uploadChunk(index + 1);
-          progressNoticeCount += 1;
-          if (progressNoticeCount % 3 === 0) {
-            ElMessage.success(translatedMessage);
-          }
-        } else if (response.msg === "????????") {
-          ElMessage.success(i18n.global.t("fileUploadSuccess"));
-        }
-      } else {
+      if (response.code !== 200) {
+        const translatedMessage = translateServerMessage(response.msg);
         ElMessage.error(translatedMessage || i18n.global.t("uploadFailedRetry"));
+        throw new Error(response.msg || "Upload failed");
+      }
+
+      if (index < totalChunks - 1) {
+        progressNoticeCount += 1;
+        if (progressNoticeCount % 3 === 0) {
+          ElMessage.success(i18n.global.t("uploadInProgress"));
+        }
       }
     } catch (error) {
       console.error("Upload chunk failed:", error);
       ElMessage.error(i18n.global.t("uploadFailedRetry"));
+      throw error;
     }
-  };
+  }
 
-  await uploadChunk(0);
+  return lastResponse;
 };
 
-const uploadFiles = (files, email, fileType, fileNumber, fun) => {
+const uploadFiles = async (files, email, fileType, fileNumber, fun) => {
   if (files.length === 0) {
     ElMessage.error(i18n.global.t("noFilesUploaded"));
     return;
   }
 
-  const totalFiles = files.length;
   const sortedFiles = Array.from(files).sort((a, b) => b.size - a.size);
+  const totalFiles = sortedFiles.length;
 
-  const uploadNextFile = (index) => {
-    if (index >= totalFiles) return;
+  try {
+    for (let index = 0; index < totalFiles; index += 1) {
+      const response = await uploadFileInChunks(
+        sortedFiles[index],
+        index + 1,
+        totalFiles,
+        email,
+        fileType,
+        fileNumber,
+        fun
+      );
 
-    uploadFileInChunks(
-      sortedFiles[index],
-      index + 1,
-      totalFiles,
-      email,
-      fileType,
-      fileNumber,
-      fun
-    ).then(() => {
-      setTimeout(() => {
-        uploadNextFile(index + 1);
-      }, 300);
-    });
-  };
-
-  uploadNextFile(0);
+      if (response?.msg) {
+        const translatedMessage = translateServerMessage(response.msg);
+        if (index === totalFiles - 1) {
+          ElMessage.success(translatedMessage || i18n.global.t("fileUploadSuccess"));
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Upload files failed:", error);
+  }
 };
 
 export { uploadFiles };

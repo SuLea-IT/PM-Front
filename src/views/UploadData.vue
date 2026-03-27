@@ -108,9 +108,6 @@ const selectedFun = ref(Number(selectedValues.value[4]));
 const options = computed(() => [
   { value: "1", label: t("singleCellData") },
   { value: "2", label: t("singleCellSpatialData") },
-  { value: "3", label: t("btSpatialData") },
-  { value: "4", label: t("xeniumDataLabel") },
-  { value: "5", label: t("h5adData") },
 ]);
 
 const funOptions = computed(() => [
@@ -122,112 +119,55 @@ const funOptions = computed(() => [
 const fileTypeGenes = {
   1: {
     allowedExtensions: [".tsv.gz", ".mtx.gz", ".txt", ".text"],
-    requiredFileNames: ["barcodes", "features", "matrix", "*", "*"],
-    uploadFileCount: 5,
-  },
-  2: {
-    allowedExtensions: [".tsv.gz", ".mtx.gz", ".txt", ".text", ".npy"],
-    requiredFileNames: [
-      "barcodes",
-      "features",
-      "matrix",
-      "barcodes_pos",
-      "*",
-      "*",
-      "*",
-    ],
-    uploadFileCount: 7,
-  },
-  3: {
-    allowedExtensions: [".tsv.gz", ".mtx.gz", ".txt", ".text"],
-    requiredFileNames: ["barcodes", "features", "matrix", "*", "*"],
-    uploadFileCount: 6,
-  },
-  4: {
-    allowedExtensions: [".csv.gz", ".mtx.gz", ".h5", ".txt", ".text"],
-    requiredFileNames: ["*", "*"],
+    requiredFileNames: ["barcodes", "features", "matrix", "*"],
     uploadFileCount: 4,
   },
-  5: {
-    allowedExtensions: [".h5ad", ".txt", ".text"],
-    requiredFileNames: ["*", "*"],
-    uploadFileCount: 3,
+  2: {
+    allowedExtensions: [".tsv.gz", ".mtx.gz", ".txt", ".text"],
+    requiredFileNames: ["barcodes", "features", "matrix", "barcodes_pos", "*"],
+    uploadFileCount: 5,
   },
 };
 
 const fileTypeGene = {
   1: {
     allowedExtensions: [".tsv.gz", ".mtx.gz", ".txt", ".text"],
-    requiredFileNames: ["barcodes", "features", "matrix", "*", "*"],
-    uploadFileCount: 5,
+    requiredFileNames: ["barcodes", "features", "matrix", "*"],
+    uploadFileCount: 4,
   },
   2: {
-    allowedExtensions: [".tsv.gz", ".mtx.gz", ".txt", ".text", ".npy"],
+    allowedExtensions: [".tsv.gz", ".mtx.gz", ".txt", ".text"],
     requiredFileNames: [
       "barcodes",
       "features",
       "matrix",
       "barcodes_pos",
       "*",
-      "*",
-      "*",
     ],
-    uploadFileCount: 6,
-  },
-  3: {
-    allowedExtensions: [".tsv.gz", ".mtx.gz", ".txt", ".text"],
-    requiredFileNames: ["barcodes", "features", "matrix", "*", "*"],
-    uploadFileCount: 6,
-  },
-  4: {
-    allowedExtensions: [".csv.gz", ".mtx.gz", ".h5", ".txt", ".text"],
-    requiredFileNames: ["*", "*"],
-    uploadFileCount: 4,
-  },
-  5: {
-    allowedExtensions: [".h5ad", ".txt", ".text"],
-    requiredFileNames: ["*", "*"],
-    uploadFileCount: 3,
+    uploadFileCount: 5,
   },
 };
 
 const fileTypeCluster = {
   1: {
-    allowedExtensions: [".tsv.gz", ".mtx.gz", ".txt", ".text"],
-    requiredFileNames: ["barcodes", "features", "matrix", "*"],
-    uploadFileCount: 4,
+    allowedExtensions: [".tsv.gz", ".mtx.gz"],
+    requiredFileNames: ["barcodes", "features", "matrix"],
+    uploadFileCount: 3,
   },
   2: {
-    allowedExtensions: [".tsv.gz", ".mtx.gz", ".npy", ".txt", ".text"],
+    allowedExtensions: [".tsv.gz", ".mtx.gz", ".txt", ".text"],
     requiredFileNames: [
       "barcodes",
       "features",
       "matrix",
       "barcodes_pos",
-      "*",
-      "*",
     ],
-    uploadFileCount: 6,
-  },
-  3: {
-    allowedExtensions: [".tsv.gz", ".mtx.gz", ".txt", ".text"],
-    requiredFileNames: ["barcodes", "features", "matrix", "*"],
-    uploadFileCount: 5,
-  },
-  4: {
-    allowedExtensions: [".csv.gz", ".mtx.gz", ".h5", ".txt", ".text"],
-    requiredFileNames: ["*", "*"],
-    uploadFileCount: 3,
-  },
-  5: {
-    allowedExtensions: [".h5ad", ".txt", ".text"],
-    requiredFileNames: ["*", "*"],
-    uploadFileCount: 2,
+    uploadFileCount: 4,
   },
 };
 
 const fileType = ref(1);
-const fileNumber = ref(4);
+const fileNumber = ref(3);
 
 watch(
   () => selectedValues.value[2],
