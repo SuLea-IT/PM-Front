@@ -9,8 +9,8 @@
       <div class="hero-glow hero-glow-right"></div>
       <div class="container hero-grid">
         <div class="hero-copy">
-          <span class="eyebrow">Plant regeneration spatial atlas</span>
-          <h1>Plant Single Cell Spatial Atlas</h1>
+          <span class="eyebrow">Single Cell Spatial Platform</span>
+          <h1>Single Cell Spatial Platform</h1>
           <p class="hero-description">
             A multimodal spatiotemporal atlas that tracks tomato de novo
             regeneration from wounding to shoot organogenesis with
@@ -195,8 +195,8 @@
 
     <section class="contact-section">
       <div class="container contact-shell">
-        <div class="contact-badge">P</div>
-        <h3>Plant Single Cell Spatial Atlas</h3>
+        <div class="contact-badge">S</div>
+        <h3>Single Cell Spatial Platform</h3>
         <p class="contact-subtitle">
           A spatiotemporal single-cell atlas for tomato regeneration and plant
           spatial transcriptomics.

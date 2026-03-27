@@ -112,7 +112,7 @@ onMounted(() => {
 
 <style scoped>
 .main-layout {
-  height: calc(100vh - 76px); /* 76px 是导航条的高度，根据实际情况调整 */
+  height: calc(100vh - 76px); /* 76px ???????????????????????? */
 }
 .el-container {
   overflow: visible;
